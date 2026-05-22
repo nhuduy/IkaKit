@@ -16,6 +16,10 @@ function resolveContainer(container) {
 }
 
 function formatNumber(value) {
+  if (value === null || typeof value === 'undefined' || value === '') {
+    return '—';
+  }
+
   const number = Number(value);
 
   if (!Number.isFinite(number)) {

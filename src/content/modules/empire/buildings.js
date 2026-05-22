@@ -51,7 +51,12 @@ function isUpgrading(buildingData) {
 }
 
 function formatBuilding(buildingData) {
-  const level = Number(getLevel(buildingData));
+  const rawLevel = getLevel(buildingData);
+  if (rawLevel === null || typeof rawLevel === 'undefined' || rawLevel === '') {
+    return '—';
+  }
+
+  const level = Number(rawLevel);
 
   if (!Number.isFinite(level)) {
     return '—';

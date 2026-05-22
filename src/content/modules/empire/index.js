@@ -15,196 +15,222 @@ const TAB_LABELS = {
   espionage: 'Espionage',
 };
 
-let _modal       = null; // jQuery object của modal đang mở
-let _activeTab   = 'resources';
-let _activeModule = null; // module đang render trong tab
+let _modal = null;
+let _activeTab = 'resources';
+let _activeModule = null;
 
-// ----------------------------------------------------------------
-// Inject CSS — dùng web_accessible_resources nên cần getURL
-// ----------------------------------------------------------------
 function _injectStyles() {
   if (document.getElementById('ika-empire-style')) return;
+
   const link = document.createElement('link');
-  link.id   = 'ika-empire-style';
-  link.rel  = 'stylesheet';
+  link.id = 'ika-empire-style';
+  link.rel = 'stylesheet';
   link.href = browser.runtime.getURL('css/ikaeasy.css');
   document.head.appendChild(link);
 }
 
-// ----------------------------------------------------------------
-// Chờ một selector xuất hiện trong DOM (MutationObserver + timeout)
-// ----------------------------------------------------------------
 function _waitFor(selector, timeout = 20000) {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(selector);
-    if (existing) { resolve(existing); return; }
+    if (existing) {
+      resolve(existing);
+      return;
+    }
 
-    const obs = new MutationObserver(() => {
-      const el = document.querySelector(selector);
-      if (el) { obs.disconnect(); resolve(el); }
+    const observer = new MutationObserver(() => {
+      const element = document.querySelector(selector);
+      if (element) {
+        observer.disconnect();
+        resolve(element);
+      }
     });
-    obs.observe(document.documentElement, { childList: true, subtree: true });
+
+    observer.observe(document.documentElement, { childList: true, subtree: true });
 
     setTimeout(() => {
-      obs.disconnect();
+      observer.disconnect();
       reject(new Error(`[IkaKit] Timeout chờ "${selector}"`));
     }, timeout);
   });
 }
 
-// ----------------------------------------------------------------
-// Inject button vào left menu của game (#js_viewCityMenu .menu_slots)
-// Nếu không tìm thấy menu game → fallback nút nổi góc màn hình
-// ----------------------------------------------------------------
+function _createMenuButton() {
+  const item = document.createElement('li');
+  item.id = 'ika-empire-btn';
+  item.className = 'slot ika-empire-btn';
+  item.title = 'Empire Manager';
+
+  const link = document.createElement('a');
+  link.href = 'javascript:void(0)';
+
+  const icon = document.createElement('div');
+  icon.className = 'ika-empire-icon';
+  icon.textContent = 'E';
+
+  const label = document.createElement('div');
+  label.className = 'ika-empire-label';
+  label.textContent = 'Empire';
+
+  link.append(icon, label);
+  item.appendChild(link);
+  item.addEventListener('click', (event) => {
+    event.preventDefault();
+    empire.toggle();
+  });
+
+  return item;
+}
+
 async function _injectButton() {
-  // Idempotent: không inject nếu đã có
-  if ($('#ika-empire-btn').length) return;
+  if (document.getElementById('ika-empire-btn')) return;
 
   try {
-    // Left menu của Ikariam xuất hiện sau khi game JS khởi động
-    await _waitFor('#js_viewCityMenu');
+    const menu = await _waitFor('#js_viewCityMenu');
+    let slots = menu.querySelector('.menu_slots');
 
-    let $slots = $('#js_viewCityMenu .menu_slots');
-    if (!$slots.length) {
-      $slots = $('<ul class="menu_slots"></ul>');
-      $('#js_viewCityMenu').append($slots);
+    if (!slots) {
+      slots = document.createElement('ul');
+      slots.className = 'menu_slots';
+      menu.appendChild(slots);
     }
 
-    const $btn = $(
-      '<li id="ika-empire-btn" class="slot ika-empire-btn" title="Empire Manager">' +
-        '<a href="javascript:void(0)">' +
-          '<div class="ika-empire-icon">⚔</div>' +
-          '<div class="ika-empire-label">Empire</div>' +
-        '</a>' +
-      '</li>'
-    );
-
-    $slots.prepend($btn);
-    $btn.on('click', () => empire.toggle());
-
+    slots.prepend(_createMenuButton());
   } catch (_err) {
-    // Fallback nút nổi — vẫn dùng được dù menu không tìm thấy
     console.warn('[IkaKit] Không tìm được #js_viewCityMenu, dùng FAB button.');
-    const $fab = $('<button id="ika-empire-btn" class="ika-empire-fab">⚔ Empire</button>');
-    $('body').append($fab);
-    $fab.on('click', () => empire.toggle());
+
+    const button = document.createElement('button');
+    button.id = 'ika-empire-btn';
+    button.className = 'ika-empire-fab';
+    button.type = 'button';
+    button.textContent = 'Empire';
+    button.addEventListener('click', () => empire.toggle());
+    document.body.appendChild(button);
   }
 }
 
-// ----------------------------------------------------------------
-// Tạo HTML cho modal
-// ----------------------------------------------------------------
-function _buildModalHtml() {
-  const tabsHtml = TABS.map(tab =>
-    '<button class="ika-tab' + (tab === _activeTab ? ' ika-tab-active' : '') +
-    '" data-tab="' + tab + '">' + TAB_LABELS[tab] + '</button>'
-  ).join('');
+function _createLoading() {
+  const loading = document.createElement('div');
+  loading.className = 'ika-loading';
+  loading.textContent = 'Đang tải...';
 
-  return (
-    '<div id="ika-empire-modal" class="ika-modal">' +
-      '<div class="ika-modal-overlay"></div>' +
-      '<div class="ika-modal-window">' +
-        '<div class="ika-modal-header">' +
-          '<span class="ika-modal-title">Empire Manager</span>' +
-          '<button class="ika-modal-close" title="Close">&times;</button>' +
-        '</div>' +
-        '<div class="ika-modal-tabs">' + tabsHtml + '</div>' +
-        '<div class="ika-modal-content" id="ika-empire-content">' +
-          '<div class="ika-loading">Đang tải…</div>' +
-        '</div>' +
-      '</div>' +
-    '</div>'
-  );
+  return loading;
 }
 
-// ----------------------------------------------------------------
-// Mở modal
-// ----------------------------------------------------------------
+function _buildModal() {
+  const modal = document.createElement('div');
+  modal.id = 'ika-empire-modal';
+  modal.className = 'ika-modal';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'ika-modal-overlay';
+  overlay.addEventListener('click', () => empire.close());
+
+  const windowEl = document.createElement('div');
+  windowEl.className = 'ika-modal-window';
+
+  const header = document.createElement('div');
+  header.className = 'ika-modal-header';
+
+  const title = document.createElement('span');
+  title.className = 'ika-modal-title';
+  title.textContent = 'Empire Manager';
+
+  const close = document.createElement('button');
+  close.className = 'ika-modal-close';
+  close.type = 'button';
+  close.title = 'Close';
+  close.innerHTML = '&times;';
+  close.addEventListener('click', () => empire.close());
+
+  const tabs = document.createElement('div');
+  tabs.className = 'ika-modal-tabs';
+
+  TABS.forEach((tab) => {
+    const button = document.createElement('button');
+    button.className = `ika-tab${tab === _activeTab ? ' ika-tab-active' : ''}`;
+    button.type = 'button';
+    button.dataset.tab = tab;
+    button.textContent = TAB_LABELS[tab];
+    button.addEventListener('click', () => _switchTab(tab));
+    tabs.appendChild(button);
+  });
+
+  const content = document.createElement('div');
+  content.className = 'ika-modal-content';
+  content.id = 'ika-empire-content';
+  content.appendChild(_createLoading());
+
+  header.append(title, close);
+  windowEl.append(header, tabs, content);
+  modal.append(overlay, windowEl);
+
+  return modal;
+}
+
+function _onKeyDown(event) {
+  if (event.key === 'Escape') {
+    empire.close();
+  }
+}
+
 async function _open() {
   if (_modal) return;
 
-  $('body').append(_buildModalHtml());
-  _modal = $('#ika-empire-modal');
-
-  // Đóng khi click overlay hoặc nút ×
-  _modal.find('.ika-modal-overlay').on('click', () => empire.close());
-  _modal.find('.ika-modal-close').on('click',   () => empire.close());
-
-  // Tab switching
-  _modal.find('.ika-tab').on('click', function () {
-    _switchTab($(this).data('tab'));
-  });
-
-  // Đóng bằng Escape (namespace để dễ unbind)
-  $(document).on('keydown.ika-empire', (e) => {
-    if (e.key === 'Escape') empire.close();
-  });
+  _modal = _buildModal();
+  document.body.appendChild(_modal);
+  document.addEventListener('keydown', _onKeyDown);
 
   await _switchTab(_activeTab);
 }
 
-// ----------------------------------------------------------------
-// Chuyển tab — hủy module cũ, load module mới qua dynamic import
-// ----------------------------------------------------------------
 async function _switchTab(tab) {
   if (!_modal) return;
 
-  // Hủy module đang chạy nếu có
   if (_activeModule && typeof _activeModule.destroy === 'function') {
     _activeModule.destroy();
   }
   _activeModule = null;
 
-  // Cập nhật trạng thái active trên tab bar
-  _modal.find('.ika-tab').removeClass('ika-tab-active');
-  _modal.find('.ika-tab[data-tab="' + tab + '"]').addClass('ika-tab-active');
+  _modal.querySelectorAll('.ika-tab').forEach((button) => {
+    button.classList.toggle('ika-tab-active', button.dataset.tab === tab);
+  });
 
-  const $content = _modal.find('#ika-empire-content');
-  $content.html('<div class="ika-loading">Đang tải…</div>');
+  const content = _modal.querySelector('#ika-empire-content');
+  content.replaceChildren(_createLoading());
 
   _activeTab = tab;
   await storage.set(STORAGE_KEY, tab);
 
   try {
-    // Dynamic import — path tương đối từ file này
     const { default: mod } = await import('./' + tab + '.js');
     _activeModule = mod;
-
-    // Lấy danh sách thành phố từ gameData (có thể null nếu game chưa sẵn)
-    const cities = gameData.getCities();
-    mod.render($content[0], cities);
-
+    mod.render(content, gameData.getCities());
   } catch (err) {
     console.error('[IkaKit] Không load được module "' + tab + '":', err);
-    $content.html(
-      '<div class="ika-error">Module "' + TAB_LABELS[tab] + '" chưa sẵn sàng.</div>'
-    );
+
+    const error = document.createElement('div');
+    error.className = 'ika-error';
+    error.textContent = `Module "${TAB_LABELS[tab]}" chưa sẵn sàng.`;
+    content.replaceChildren(error);
   }
 }
 
-// ----------------------------------------------------------------
-// Public API
-// ----------------------------------------------------------------
 const empire = {
   async init() {
     _injectStyles();
 
-    // Restore tab đã lưu từ lần mở trước
     const saved = await storage.get(STORAGE_KEY);
     if (TABS.includes(saved)) _activeTab = saved;
 
-    // Inject button — không block, chạy song song với phần còn lại của extension
-    _injectButton().catch(err => console.error('[IkaKit] _injectButton:', err));
+    _injectButton().catch((err) => console.error('[IkaKit] _injectButton:', err));
   },
 
-  // Gọi lại khi navigation đổi trang, để re-inject nếu game xóa mất button
   ensureButton() {
-    if (!$('#ika-empire-btn').length) {
+    if (!document.getElementById('ika-empire-btn')) {
       _injectButton().catch(() => {});
     }
   },
 
-  // Gọi từ navigation.onChange khi user chuyển trang
   onPageChange(_pageName) {
     this.ensureButton();
   },
@@ -220,7 +246,7 @@ const empire = {
   close() {
     if (!_modal) return;
 
-    $(document).off('keydown.ika-empire');
+    document.removeEventListener('keydown', _onKeyDown);
     _modal.remove();
     _modal = null;
 

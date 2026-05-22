@@ -32,8 +32,7 @@
         "http://*.ikariam.gameforge.com/*",
         "https://*.ikariam.gameforge.com/*"
       ],
-      "js": ["content/init.js"],
-      "type": "module",
+      "js": ["content/loader.js"],
       "run_at": "document_idle"
     }
   ],
@@ -56,6 +55,9 @@
       "resources": [
         "assets/images/*",
         "assets/icon/*",
+        "content/*",
+        "content/helpers/*",
+        "content/modules/empire/*",
         "css/*",
         "tpl/*"
       ]

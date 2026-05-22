@@ -11,13 +11,25 @@ function resolveContainer(container) {
 }
 
 function formatNumber(value) {
+  if (value === null || typeof value === 'undefined' || value === '') {
+    return '—';
+  }
+
   const number = Number(value);
 
-  return Number.isFinite(number) ? number.toLocaleString() : '0';
+  return Number.isFinite(number) ? number.toLocaleString() : '—';
 }
 
 function getMilitaryCount(city, type) {
   const military = city?.military ?? {};
+
+  if (
+    !city?.military
+    && !city?.units
+    && !city?.ships
+  ) {
+    return null;
+  }
 
   // Chấp nhận cả shape flat { phalanx: 10 } lẫn nested { units: {}, ships: {} }.
   return military[type]
@@ -81,9 +93,12 @@ function createTable(cities, types, kind) {
     appendTextCell(row, 'td', city?.name ?? `City ${city?.id ?? ''}`.trim(), 'ika-city-name');
 
     types.forEach((type) => {
-      const count = Number(getMilitaryCount(city, type)) || 0;
-      totals[type] += count;
-      appendTextCell(row, 'td', formatNumber(count), 'ika-number');
+      const rawCount = getMilitaryCount(city, type);
+      const count = Number(rawCount);
+      if (Number.isFinite(count)) {
+        totals[type] += count;
+      }
+      appendTextCell(row, 'td', formatNumber(rawCount), 'ika-number');
     });
 
     tbody.appendChild(row);
