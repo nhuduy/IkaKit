@@ -61,6 +61,11 @@
     32: 'marineChartArchive',
     33: 'dockyard'
   };
+  var MULTIPLE_BUILDINGS = {
+    warehouse: true,
+    port: true,
+    shipyard: true
+  };
 
   var UNIT_IDS = {
     301: 'slinger',
@@ -124,6 +129,7 @@
     'ship_ballooncarrier',
     'ship_tender'
   ];
+  var MAX_SCIENTISTS = [0, 8, 12, 16, 22, 28, 35, 43, 51, 60, 69, 79, 89, 100, 111, 122, 134, 146, 159, 172, 185, 198, 212, 227, 241, 256, 271, 287, 302, 318, 335, 351, 368];
 
   function asNumber(value, fallback) {
     var number = parseInt(value, 10);
@@ -136,8 +142,36 @@
     return asNumber(normalized, 0);
   }
 
+  function optionalTextNumber(value) {
+    if (value === null || typeof value === 'undefined') return null;
+    var normalized = String(value)
+      .replace(/,/g, '')
+      .replace(/[^\d.-]/g, '');
+    var number = parseFloat(normalized);
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function optionalNumber(value) {
+    if (value === null || typeof value === 'undefined') return null;
+    if (typeof value === 'object') return null;
+    return optionalTextNumber(value);
+  }
+
   function own(obj, key) {
     return Object.prototype.hasOwnProperty.call(obj || {}, key);
+  }
+
+  function asBoolean(value) {
+    if (value === true || value === false) return value;
+    if (value === 1 || value === '1') return true;
+    if (value === 0 || value === '0') return false;
+    if (typeof value === 'string') {
+      var normalized = value.toLowerCase().trim();
+      if (normalized === 'true') return true;
+      if (normalized === 'false') return false;
+    }
+
+    return Boolean(value);
   }
 
   // Trả về argument đầu tiên != null/undefined (khác || vốn bỏ qua giá trị falsy như 0).
@@ -160,6 +194,52 @@
     return target;
   }
 
+  function firstNumber() {
+    for (var i = 0; i < arguments.length; i++) {
+      var number = optionalNumber(arguments[i]);
+      if (number !== null) return number;
+    }
+
+    return null;
+  }
+
+  function readGoldFromDom() {
+    var selectors = [
+      '#js_GlobalMenu_gold',
+      '#js_GlobalMenu_money',
+      '#globalResources .gold',
+      '#cityResources .gold',
+      '.resource_icon.gold',
+      '.gold'
+    ];
+
+    for (var i = 0; i < selectors.length; i++) {
+      var element = document.querySelector(selectors[i]);
+      if (!element) continue;
+
+      var text = element.getAttribute('title') || element.textContent;
+      var number = optionalTextNumber(text);
+      if (number !== null) return number;
+    }
+
+    return null;
+  }
+
+  function readAccountGold(model) {
+    var fromModel = firstNumber(
+      model.gold,
+      model.money,
+      model.accountGold,
+      model.currentGold,
+      model.playerGold,
+      model.avatarGold,
+      model.resources && model.resources.gold,
+      model.currentResources && model.currentResources.gold
+    );
+
+    return fromModel !== null ? fromModel : readGoldFromDom();
+  }
+
   function normalizeResources(source) {
     if (!source || typeof source !== 'object') return null;
 
@@ -174,6 +254,29 @@
     if (own(source, 'citizens')) resources.population = asNumber(source.citizens, 0);
 
     return Object.keys(resources).length ? resources : null;
+  }
+
+  function normalizeCityStats(source) {
+    if (!source || typeof source !== 'object') return null;
+
+    var stats = {};
+    [
+      ['scientists', 'scientists'],
+      ['scientistCount', 'scientists'],
+      ['happinessLargeValue', 'happiness'],
+      ['happiness', 'happiness'],
+      ['populationGrowthValue', 'populationGrowth'],
+      ['populationGrowth', 'populationGrowth'],
+      ['occupiedSpace', 'occupiedSpace'],
+      ['maxInhabitants', 'maxInhabitants'],
+      ['maxScientists', 'maxScientists']
+    ].forEach(function(pair) {
+      if (!own(source, pair[0])) return;
+      var number = optionalNumber(source[pair[0]]);
+      if (number !== null) stats[pair[1]] = number;
+    });
+
+    return Object.keys(stats).length ? stats : null;
   }
 
   function normalizeBuildingType(raw) {
@@ -204,14 +307,46 @@
     };
 
     if (extra && typeof extra === 'object') {
+      if (extra.position !== null && typeof extra.position !== 'undefined') {
+        data.position = asNumber(extra.position, extra.position);
+      }
+
+      if (extra.canUpgrade !== null && typeof extra.canUpgrade !== 'undefined') {
+        data.canUpgrade = asBoolean(extra.canUpgrade);
+      }
+      if (extra.isBusy !== null && typeof extra.isBusy !== 'undefined') {
+        data.isBusy = asBoolean(extra.isBusy);
+      }
+      if (extra.isMaxLevel !== null && typeof extra.isMaxLevel !== 'undefined') {
+        data.isMaxLevel = asBoolean(extra.isMaxLevel);
+      }
+      if (extra.completed !== null && typeof extra.completed !== 'undefined') {
+        data.completed = asNumber(extra.completed, extra.completed);
+      }
+      if (extra.name !== null && typeof extra.name !== 'undefined') {
+        data.name = String(extra.name);
+      }
+
       data.isUpgrading = Boolean(
-        extra.isUpgrading
-        || extra.upgrading
-        || extra.inUpgrade
-        || extra.underConstruction
+        asBoolean(extra.isUpgrading)
+        || asBoolean(extra.upgrading)
+        || asBoolean(extra.inUpgrade)
+        || asBoolean(extra.underConstruction)
+        || asNumber(extra.completed, 0) > 0
         || extra.upgradeEndTime
         || extra.upgradeFinishTime
       );
+    }
+
+    if (MULTIPLE_BUILDINGS[type]) {
+      if (!Array.isArray(buildings[type])) buildings[type] = [];
+      buildings[type].push(data);
+      buildings[type].sort(function(left, right) {
+        var leftPos = asNumber(left.position, Number.MAX_SAFE_INTEGER);
+        var rightPos = asNumber(right.position, Number.MAX_SAFE_INTEGER);
+        return leftPos - rightPos;
+      });
+      return;
     }
 
     if (!buildings[type] || level > buildings[type].level) {
@@ -234,13 +369,13 @@
       if (!candidate || typeof candidate !== 'object') return;
 
       if (Array.isArray(candidate)) {
-        candidate.forEach(function(entry) {
+        candidate.forEach(function(entry, index) {
           if (!entry || typeof entry !== 'object') return;
           addBuilding(
             buildings,
             firstDefined(entry.building, entry.type, entry.name),
             entry.level || entry.currentLevel || entry.buildingLevel,
-            entry
+            mergeObject({ position: index }, entry)
           );
         });
         return;
@@ -253,10 +388,10 @@
             buildings,
             firstDefined(entry.building, entry.type, entry.name, key),
             entry.level || entry.currentLevel || entry.buildingLevel,
-            entry
+            mergeObject({ position: key }, entry)
           );
         } else {
-          addBuilding(buildings, key, entry, null);
+          addBuilding(buildings, key, entry, { position: key });
         }
       });
     });
@@ -338,6 +473,7 @@
     if (resources) city.resources = resources;
     if (buildings) city.buildings = buildings;
     if (military) city.military = military;
+    mergeObject(city, normalizeCityStats(source));
     city.gold = source.gold || source.money || city.gold || null;
     city.population = source.population || source.citizens || city.population || null;
 
@@ -365,6 +501,20 @@
     if (cached.resources) city.resources = mergeObject(city.resources || {}, cached.resources);
     if (cached.buildings) city.buildings = mergeObject(city.buildings || {}, cached.buildings);
     if (cached.military) city.military = mergeObject(city.military || {}, cached.military);
+    [
+      'scientists',
+      'happiness',
+      'populationGrowth',
+      'occupiedSpace',
+      'maxInhabitants',
+      'maxScientists',
+      'corruption',
+      'research'
+    ].forEach(function(key) {
+      if (cached[key] !== null && typeof cached[key] !== 'undefined') {
+        city[key] = cached[key];
+      }
+    });
     if (cached.updatedAt) city.updatedAt = cached.updatedAt;
 
     return city;
@@ -386,6 +536,20 @@
     if (patch.military) {
       existing.military = mergeObject(existing.military || {}, patch.military);
     }
+    [
+      'scientists',
+      'happiness',
+      'populationGrowth',
+      'occupiedSpace',
+      'maxInhabitants',
+      'maxScientists',
+      'corruption',
+      'research'
+    ].forEach(function(key) {
+      if (patch[key] !== null && typeof patch[key] !== 'undefined') {
+        existing[key] = patch[key];
+      }
+    });
 
     existing.updatedAt = Date.now();
     cityCache[id] = existing;
@@ -443,7 +607,9 @@
   function toQuery(params) {
     return Object.keys(params)
       .filter(function(key) {
-        return params[key] !== null && typeof params[key] !== 'undefined';
+        return key.indexOf('__ikakit') !== 0
+          && params[key] !== null
+          && typeof params[key] !== 'undefined';
       })
       .map(function(key) {
         return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
@@ -479,7 +645,7 @@
     if (!item || item[0] !== 'changeView' || !Array.isArray(item[1])) return null;
 
     for (var i = 0; i < item[1].length; i++) {
-      if (typeof item[1][i] === 'string' && item[1][i].indexOf('militaryList') !== -1) {
+      if (typeof item[1][i] === 'string' && item[1][i].indexOf('<') !== -1) {
         return item[1][i];
       }
     }
@@ -526,10 +692,12 @@
     var buildings = normalizeBuildings({ position: backgroundData.position })
       || normalizeBuildings(backgroundData);
     var military = normalizeMilitary(backgroundData) || normalizeMilitary(headerData) || normalizeMilitary(data);
+    var stats = normalizeCityStats(backgroundData) || normalizeCityStats(headerData) || normalizeCityStats(data);
 
     if (resources) patch.resources = resources;
     if (buildings) patch.buildings = buildings;
     if (military) patch.military = military;
+    if (stats) mergeObject(patch, stats);
 
     cachePatch(cityId, patch);
   }
@@ -565,10 +733,12 @@
       || normalizeBuildings(params)
       || normalizeBuildings(candidate);
     var military = normalizeMilitary(citySource) || normalizeMilitary(params);
+    var stats = normalizeCityStats(citySource) || normalizeCityStats(params);
 
     if (resources) patch.resources = resources;
     if (buildings) patch.buildings = buildings;
     if (military) patch.military = military;
+    if (stats) mergeObject(patch, stats);
 
     cachePatch(cityId, patch);
   }
@@ -587,7 +757,7 @@
   }
 
   function cacheFromCityMilitaryHtml(html, fallbackCityId) {
-    if (!html || typeof DOMParser === 'undefined') return;
+    if (!html || html.indexOf('militaryList') === -1 || typeof DOMParser === 'undefined') return;
 
     var doc;
     try {
@@ -611,6 +781,38 @@
     });
   }
 
+  function readDocNumber(doc, selector) {
+    var element = doc.querySelector(selector);
+    if (!element) return null;
+    return optionalTextNumber(element.textContent);
+  }
+
+  function cacheFromTownHallHtml(html, fallbackCityId) {
+    if (!html || html.indexOf('js_TownHall') === -1 || typeof DOMParser === 'undefined') return;
+
+    var doc;
+    try {
+      doc = new DOMParser().parseFromString(html, 'text/html');
+    } catch (_err) {
+      return;
+    }
+
+    var cityInput = doc.querySelector('input[name="cityId"]');
+    var cityId = parseInt(firstDefined(cityInput && cityInput.value, fallbackCityId), 10);
+    if (!Number.isFinite(cityId)) return;
+
+    var patch = {
+      id: cityId,
+      scientists: readDocNumber(doc, '#js_TownHallPopulationGraphScientistCount'),
+      happiness: readDocNumber(doc, '#js_TownHallHappinessLargeValue'),
+      populationGrowth: readDocNumber(doc, '#js_TownHallPopulationGrowthValue'),
+      occupiedSpace: readDocNumber(doc, '#js_TownHallOccupiedSpace'),
+      maxInhabitants: readDocNumber(doc, '#js_TownHallMaxInhabitants')
+    };
+
+    cachePatch(cityId, patch);
+  }
+
   function processAjaxResponse(response, fallbackCityId) {
     var items = extractAjaxItems(response);
 
@@ -630,6 +832,51 @@
       var html = readChangeViewHtml(item);
       if (html) {
         cacheFromCityMilitaryHtml(html, fallbackCityId);
+        cacheFromTownHallHtml(html, fallbackCityId);
+      }
+    });
+  }
+
+  function buildingLevel(city, type) {
+    var building = city && city.buildings && city.buildings[type];
+    if (!building) return 0;
+    if (typeof building === 'number') return building;
+    if (typeof building === 'object') {
+      return asNumber(building.level || building.currentLevel || building.buildingLevel, 0);
+    }
+
+    return 0;
+  }
+
+  function calculateCorruption(city, cityCount) {
+    if (!cityCount) return null;
+    var residenceLevel = Math.max(
+      buildingLevel(city, 'palace'),
+      buildingLevel(city, 'palaceColony')
+    );
+    var corruption = 1 - (residenceLevel + 1) / cityCount;
+    return Math.min(Math.max(corruption, 0), 1);
+  }
+
+  function enrichDerivedCityStats(cities) {
+    var ownCount = getOwnCityIds(cities).length || cities.length || 0;
+
+    cities.forEach(function(city) {
+      var academyLevel = buildingLevel(city, 'academy');
+
+      if (city.maxScientists === null || typeof city.maxScientists === 'undefined') {
+        city.maxScientists = MAX_SCIENTISTS[academyLevel] || 0;
+      }
+
+      if (city.corruption === null || typeof city.corruption === 'undefined') {
+        city.corruption = calculateCorruption(city, ownCount);
+      }
+
+      if (city.scientists !== null && typeof city.scientists !== 'undefined') {
+        var corruptionMultiplier = city.corruption !== null && typeof city.corruption !== 'undefined'
+          ? 1 - city.corruption
+          : 1;
+        city.research = Math.max(0, city.scientists * corruptionMultiplier);
       }
     });
   }
@@ -802,6 +1049,7 @@
         var cityId = ids[i];
         if (!force && cacheStillFresh(cityId)) {
           scanState.fetched += 1;
+          send();
           continue;
         }
 
@@ -833,14 +1081,23 @@
 
       var model = ikariam.model;
       var parsed = readCities(model);
+      var accountGold = readAccountGold(model);
       applyCache(parsed.cities);
       enrichCurrentCity(parsed.cities, parsed.selectedCityId, model);
+      enrichDerivedCityStats(parsed.cities);
+
+      if (accountGold !== null) {
+        parsed.cities.forEach(function(city) {
+          city.gold = accountGold;
+        });
+      }
 
       window.postMessage({
         __ikakit: 'gameData',
         payload: {
           playerName: model.ownerName || model.avatarName || model.name || null,
           playerId: model.avatarId ? parseInt(model.avatarId, 10) : null,
+          accountGold: accountGold,
           selectedCityId: parsed.selectedCityId,
           cities: parsed.cities,
           debug: {
@@ -856,6 +1113,8 @@
               inProgress: scanState.inProgress,
               fetched: scanState.fetched,
               total: scanState.total,
+              lastStarted: scanState.lastStarted,
+              lastCompleted: scanState.lastCompleted,
               lastError: scanState.lastError,
               revision: scanState.revision
             }
@@ -881,7 +1140,7 @@
     var query = '?' + toQuery(params);
 
     try {
-      if (typeof ajaxHandlerCall === 'function') {
+      if (params.__ikakitMode !== 'location' && typeof ajaxHandlerCall === 'function') {
         ajaxHandlerCall(query);
         return;
       }

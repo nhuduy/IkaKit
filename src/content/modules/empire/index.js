@@ -20,6 +20,7 @@ let _activeTab = 'resources';
 let _activeModule = null;
 let _unsubscribeGameData = null;
 let _unsubscribeScanStatus = null;
+let _modalPosition = null;
 
 function _injectStyles() {
   if (document.getElementById('ika-empire-style')) return;
@@ -67,7 +68,6 @@ function _createMenuButton() {
 
   const icon = document.createElement('div');
   icon.className = 'ika-empire-icon';
-  icon.textContent = 'E';
 
   const label = document.createElement('div');
   label.className = 'ika-empire-label';
@@ -137,10 +137,21 @@ function _formatScanStatus(data) {
   }
 
   if (scan.total) {
-    return `Synced ${scan.total} cities`;
+    const syncedAt = _formatTime(scan.lastCompleted);
+    return syncedAt ? `Synced ${scan.total} • ${syncedAt}` : `Synced ${scan.total} cities`;
   }
 
   return cityCount ? `${cityCount} cities` : 'Ready';
+}
+
+function _formatTime(timestamp) {
+  const value = Number(timestamp);
+  if (!Number.isFinite(value) || value <= 0) return '';
+
+  return new Date(value).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function _updateScanStatus(data = gameData.get()) {
@@ -154,13 +165,73 @@ function _updateScanStatus(data = gameData.get()) {
     status.textContent = _formatScanStatus(data);
     status.classList.toggle('ika-scan-status-active', Boolean(scan?.inProgress));
     status.classList.toggle('ika-scan-status-warning', Boolean(scan?.lastError && !scan?.inProgress));
-    status.title = scan?.lastError ? String(scan.lastError) : '';
+    status.title = scan?.lastError
+      ? String(scan.lastError)
+      : (_formatTime(scan?.lastCompleted) ? `Last synced at ${_formatTime(scan.lastCompleted)}` : '');
   }
 
   if (refresh) {
     refresh.disabled = Boolean(scan?.inProgress);
     refresh.classList.toggle('ika-loading-button', Boolean(scan?.inProgress));
   }
+}
+
+function _clampModalPosition(left, top, windowEl) {
+  const rect = windowEl.getBoundingClientRect();
+  const maxLeft = Math.max(0, window.innerWidth - rect.width);
+  const maxTop = Math.max(0, window.innerHeight - rect.height);
+
+  return {
+    left: Math.min(Math.max(0, left), maxLeft),
+    top: Math.min(Math.max(0, top), maxTop),
+  };
+}
+
+function _placeModalWindow(windowEl, left, top) {
+  const position = _clampModalPosition(left, top, windowEl);
+
+  windowEl.style.position = 'fixed';
+  windowEl.style.left = `${position.left}px`;
+  windowEl.style.top = `${position.top}px`;
+  windowEl.style.margin = '0';
+  _modalPosition = position;
+}
+
+function _enableModalDrag(windowEl, handle) {
+  let drag = null;
+
+  handle.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || event.target.closest('button, a, input, select, textarea')) {
+      return;
+    }
+
+    const rect = windowEl.getBoundingClientRect();
+    drag = {
+      pointerId: event.pointerId,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+    };
+
+    _placeModalWindow(windowEl, rect.left, rect.top);
+    handle.classList.add('ika-modal-header-dragging');
+    handle.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  });
+
+  handle.addEventListener('pointermove', (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    _placeModalWindow(windowEl, event.clientX - drag.offsetX, event.clientY - drag.offsetY);
+  });
+
+  const stopDrag = (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    drag = null;
+    handle.classList.remove('ika-modal-header-dragging');
+    handle.releasePointerCapture(event.pointerId);
+  };
+
+  handle.addEventListener('pointerup', stopDrag);
+  handle.addEventListener('pointercancel', stopDrag);
 }
 
 function _buildModal() {
@@ -239,6 +310,7 @@ function _buildModal() {
   header.append(title, actions);
   windowEl.append(header, tabs, content);
   modal.append(overlay, windowEl);
+  _enableModalDrag(windowEl, header);
 
   return modal;
 }
@@ -254,6 +326,10 @@ async function _open() {
 
   _modal = _buildModal();
   document.body.appendChild(_modal);
+  if (_modalPosition) {
+    const windowEl = _modal.querySelector('.ika-modal-window');
+    _placeModalWindow(windowEl, _modalPosition.left, _modalPosition.top);
+  }
   document.addEventListener('keydown', _onKeyDown);
   gameData.requestCityScan();
   _updateScanStatus();
@@ -282,7 +358,9 @@ async function _switchTab(tab) {
   content.replaceChildren(_createLoading());
 
   _activeTab = tab;
-  await storage.set(STORAGE_KEY, tab);
+  storage.set(STORAGE_KEY, tab).catch((error) => {
+    console.warn('[IkaKit] Không lưu được active empire tab:', error);
+  });
 
   try {
     const { default: mod } = await import('./' + tab + '.js');

@@ -2,10 +2,14 @@
 // Render quân đội theo 2 tab: lục quân và hải quân.
 
 import { Military } from '../../const.js';
-import gameData from '../../helpers/gameData.js';
+import { appendMilitaryTransportCell, appendTransportHeader } from './transportActions.js';
+import { appendCityCell, appendCityHeader } from './cityCell.js';
 
 const UNIT_TYPES = Object.freeze(Object.values(Military).filter((type) => !type.startsWith('ship_')));
 const SHIP_TYPES = Object.freeze(Object.values(Military).filter((type) => type.startsWith('ship_')));
+const CITY_COLUMN_WIDTH = 144;
+const ACTION_COLUMN_WIDTH = 46;
+const UNIT_COLUMN_WIDTH = 42;
 
 function resolveContainer(container) {
   return typeof container === 'string' ? document.querySelector(container) : container;
@@ -58,58 +62,6 @@ function appendTextCell(row, tagName, text, className = '') {
   return cell;
 }
 
-function appendTransportHeader(row) {
-  const th = document.createElement('th');
-  th.className = 'ika-transport-header';
-  th.title = 'Actions';
-  row.appendChild(th);
-}
-
-function createActionButton(label, title, params) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'ika-transport-button';
-  button.textContent = label;
-  button.title = title;
-  button.addEventListener('click', (event) => {
-    event.stopPropagation();
-    gameData.openGameView(params);
-  });
-
-  return button;
-}
-
-function appendTransportCell(row, city) {
-  const cell = document.createElement('td');
-  const inner = document.createElement('div');
-  const cityId = city?.id;
-
-  cell.className = 'ika-transport-cell';
-  inner.className = 'ika-transport-actions';
-
-  if (cityId) {
-    inner.append(
-      createActionButton('R', 'Transport resources', {
-        view: 'transport',
-        destinationCityId: cityId,
-      }),
-      createActionButton('F', 'Deploy fleet', {
-        view: 'deployment',
-        deploymentType: 'fleet',
-        destinationCityId: cityId,
-      }),
-      createActionButton('A', 'Deploy army', {
-        view: 'deployment',
-        deploymentType: 'army',
-        destinationCityId: cityId,
-      }),
-    );
-  }
-
-  cell.appendChild(inner);
-  row.appendChild(cell);
-}
-
 function appendUnitHeader(row, type, kind) {
   const th = document.createElement('th');
   th.className = 'ika-military-unit';
@@ -122,6 +74,7 @@ function appendUnitHeader(row, type, kind) {
   img.src = iconPath(type, kind);
 
   const label = document.createElement('span');
+  label.className = 'ika-sr-label';
   label.textContent = type;
 
   th.append(img, label);
@@ -131,6 +84,7 @@ function appendUnitHeader(row, type, kind) {
 function createTable(cities, types, kind) {
   const table = document.createElement('table');
   table.className = `ika-table ika-military-table ika-military-${kind}`;
+  table.style.minWidth = `${CITY_COLUMN_WIDTH + ACTION_COLUMN_WIDTH + (types.length * UNIT_COLUMN_WIDTH)}px`;
   const colgroup = document.createElement('colgroup');
   const thead = document.createElement('thead');
   const headRow = document.createElement('tr');
@@ -148,7 +102,7 @@ function createTable(cities, types, kind) {
     colgroup.appendChild(col);
   });
 
-  appendTextCell(headRow, 'th', 'City');
+  appendCityHeader(headRow);
   appendTransportHeader(headRow);
   types.forEach((type) => appendUnitHeader(headRow, type, kind));
   thead.appendChild(headRow);
@@ -156,8 +110,8 @@ function createTable(cities, types, kind) {
   cities.forEach((city) => {
     const row = document.createElement('tr');
 
-    appendTextCell(row, 'td', city?.name ?? `City ${city?.id ?? ''}`.trim(), 'ika-city-name');
-    appendTransportCell(row, city);
+    appendCityCell(row, city);
+    appendMilitaryTransportCell(row, city);
 
     types.forEach((type) => {
       const rawCount = getMilitaryCount(city, type);

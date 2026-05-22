@@ -2,6 +2,8 @@
 // Render các công trình liên quan đến gián điệp và nghiên cứu hỗ trợ.
 
 import { Buildings } from '../../const.js';
+import { appendResourceTransportCell, appendTransportHeader } from './transportActions.js';
+import { appendCityCell, appendCityHeader } from './cityCell.js';
 
 const ESPIONAGE_BUILDINGS = Object.freeze([
   ['Hideout/Safehouse', Buildings.HIDEOUT],
@@ -73,7 +75,8 @@ function createHeader() {
   const thead = document.createElement('thead');
   const row = document.createElement('tr');
 
-  appendCell(row, 'th', 'City');
+  appendCityHeader(row);
+  appendTransportHeader(row);
 
   ESPIONAGE_BUILDINGS.forEach(([label]) => {
     appendCell(row, 'th', label);
@@ -90,7 +93,8 @@ function createBody(cities) {
   cities.forEach((city) => {
     const row = document.createElement('tr');
 
-    appendCell(row, 'td', city?.name ?? `City ${city?.id ?? ''}`.trim(), 'ika-city-name');
+    appendCityCell(row, city);
+    appendResourceTransportCell(row, city);
 
     ESPIONAGE_BUILDINGS.forEach(([, buildingType]) => {
       appendCell(row, 'td', formatBuilding(getBuildingData(city, buildingType)), 'ika-number');
