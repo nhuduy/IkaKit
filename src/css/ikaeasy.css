@@ -6,6 +6,20 @@
 }
 
 .ika-modal {
+  --ika-ink: #4b2d12;
+  --ika-ink-soft: #75532c;
+  --ika-border: #d2a55f;
+  --ika-border-dark: #9a6b2f;
+  --ika-paper: #fff8dc;
+  --ika-paper-strong: #fff2c7;
+  --ika-paper-muted: #f7e2b8;
+  --ika-row: #fffaf0;
+  --ika-row-alt: #fdf2d0;
+  --ika-row-hover: #fff0b8;
+  --ika-accent: #7b461c;
+  --ika-accent-dark: #542c0f;
+  --ika-green: #627a27;
+  --ika-red: #9a2f1f;
   position: fixed;
   inset: 0;
   z-index: 99999;
@@ -13,7 +27,7 @@
   align-items: flex-start;
   justify-content: center;
   padding: 36px 12px;
-  color: #2f3437;
+  color: var(--ika-ink);
   font-family: Arial, Helvetica, sans-serif;
   font-size: 12px;
   line-height: 1.35;
@@ -22,7 +36,7 @@
 .ika-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(18, 22, 25, 0.48);
+  background: rgba(45, 27, 13, 0.42);
 }
 
 .ika-modal-window {
@@ -33,10 +47,12 @@
   width: min(1120px, 96vw);
   max-height: calc(100vh - 72px);
   overflow: hidden;
-  background: #f7f7f4;
-  border: 1px solid #bfc4c2;
+  background: var(--ika-paper);
+  border: 1px solid var(--ika-border-dark);
   border-radius: 4px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.26);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 12px 32px rgba(35, 22, 10, 0.34);
 }
 
 .ika-modal-header {
@@ -45,14 +61,16 @@
   justify-content: space-between;
   min-height: 38px;
   padding: 8px 12px;
-  background: #ececea;
-  border-bottom: 1px solid #cdd1cf;
+  color: var(--ika-paper);
+  background: linear-gradient(#81501f, var(--ika-accent-dark));
+  border-bottom: 1px solid var(--ika-border-dark);
 }
 
 .ika-modal-title {
-  color: #202427;
+  color: #fff1bd;
   font-size: 13px;
   font-weight: 700;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
 }
 
 .ika-modal-close {
@@ -62,9 +80,9 @@
   width: 24px;
   height: 24px;
   padding: 0;
-  color: #4c5357;
-  background: transparent;
-  border: 1px solid transparent;
+  color: #fff1bd;
+  background: rgba(255, 248, 220, 0.1);
+  border: 1px solid rgba(255, 226, 157, 0.55);
   border-radius: 3px;
   cursor: pointer;
   font-size: 18px;
@@ -73,48 +91,49 @@
 
 .ika-modal-close:hover,
 .ika-modal-close:focus {
-  color: #111416;
-  background: #dedfdd;
-  border-color: #bdc3c0;
+  color: #ffffff;
+  background: rgba(255, 248, 220, 0.2);
+  border-color: #ffe29d;
   outline: none;
 }
 
 .ika-modal-tabs {
   display: flex;
   flex: 0 0 auto;
-  gap: 2px;
+  gap: 4px;
   overflow-x: auto;
-  padding: 6px 8px 0;
-  background: #f1f1ee;
-  border-bottom: 1px solid #cdd1cf;
+  padding: 7px 8px 0;
+  background: var(--ika-paper-muted);
+  border-bottom: 1px solid var(--ika-border);
 }
 
 .ika-tab {
   flex: 0 0 auto;
   min-height: 29px;
-  padding: 6px 12px;
-  color: #525b60;
-  background: transparent;
-  border: 1px solid transparent;
+  padding: 6px 13px;
+  color: var(--ika-ink);
+  background: #f5d99d;
+  border: 1px solid var(--ika-border);
   border-bottom: 0;
   border-radius: 4px 4px 0 0;
   cursor: pointer;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .ika-tab:hover,
 .ika-tab:focus {
-  color: #202427;
-  background: #e6e7e4;
+  color: var(--ika-accent-dark);
+  background: #fff0bf;
   outline: none;
 }
 
 .ika-tab-active {
-  color: #1f262a;
-  background: #f7f7f4;
-  border-color: #cdd1cf;
+  color: var(--ika-accent-dark);
+  background: var(--ika-paper);
+  border-color: var(--ika-border);
   margin-bottom: -1px;
+  cursor: default;
 }
 
 .ika-modal-content {
@@ -122,7 +141,25 @@
   min-height: 210px;
   overflow: auto;
   padding: 12px;
-  background: #f7f7f4;
+  background: var(--ika-paper);
+}
+
+.ika-modal-content::-webkit-scrollbar,
+.ika-military-content::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.ika-modal-content::-webkit-scrollbar-thumb,
+.ika-military-content::-webkit-scrollbar-thumb {
+  background: #c69a55;
+  border: 2px solid var(--ika-paper);
+  border-radius: 8px;
+}
+
+.ika-modal-content::-webkit-scrollbar-track,
+.ika-military-content::-webkit-scrollbar-track {
+  background: #f2d9aa;
 }
 
 .ika-loading,
@@ -130,29 +167,30 @@
   padding: 36px 16px;
   text-align: center;
   font-size: 12px;
+  font-weight: 700;
 }
 
 .ika-loading {
-  color: #667075;
+  color: var(--ika-ink-soft);
 }
 
 .ika-error {
-  color: #9b332c;
+  color: var(--ika-red);
 }
 
 .ika-table {
   width: 100%;
   min-width: max-content;
   border-collapse: collapse;
-  color: #2f3437;
-  background: #ffffff;
-  border: 1px solid #cfd5d2;
+  color: var(--ika-ink);
+  background: var(--ika-row);
+  border: 1px solid var(--ika-border);
   font-size: 12px;
 }
 
 .ika-table th,
 .ika-table td {
-  border: 1px solid #d9dedb;
+  border: 1px solid #e4bf7f;
   padding: 5px 8px;
   vertical-align: middle;
 }
@@ -161,8 +199,8 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  color: #263036;
-  background: #e9ece9;
+  color: var(--ika-accent-dark);
+  background: var(--ika-paper-strong);
   font-weight: 700;
   text-align: center;
   white-space: nowrap;
@@ -173,16 +211,16 @@
 }
 
 .ika-table tbody tr:nth-child(even) td {
-  background: #fafafa;
+  background: var(--ika-row-alt);
 }
 
 .ika-table tbody tr:hover td {
-  background: #eef4f3;
+  background: var(--ika-row-hover);
 }
 
 .ika-city-name {
   min-width: 130px;
-  color: #242a2e;
+  color: var(--ika-accent-dark);
   font-weight: 700;
   text-align: left !important;
   white-space: nowrap;
@@ -195,9 +233,9 @@
 }
 
 .ika-total-row td {
-  background: #e7ecea !important;
-  border-top-color: #aeb8b4;
-  color: #20272b;
+  background: #ead293 !important;
+  border-top: 2px solid var(--ika-border-dark);
+  color: var(--ika-accent-dark);
   font-weight: 700;
 }
 
@@ -210,16 +248,18 @@
 .ika-military-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
+  padding: 4px 4px 0;
+  border-bottom: 1px solid var(--ika-border);
 }
 
 .ika-tab-button {
   min-height: 28px;
-  padding: 5px 12px;
-  color: #4f5a5f;
-  background: #ffffff;
-  border: 1px solid #c8cfcb;
-  border-radius: 3px;
+  padding: 5px 13px;
+  color: var(--ika-ink);
+  background: #f5d99d;
+  border: 1px solid var(--ika-border);
+  border-radius: 3px 3px 0 0;
   cursor: pointer;
   font-size: 12px;
   font-weight: 700;
@@ -227,15 +267,16 @@
 
 .ika-tab-button:hover,
 .ika-tab-button:focus {
-  color: #202427;
-  background: #eef2f0;
+  color: var(--ika-accent-dark);
+  background: #fff0bf;
   outline: none;
 }
 
 .ika-tab-button.ika-active {
-  color: #ffffff;
-  background: #44515a;
-  border-color: #44515a;
+  color: var(--ika-paper);
+  background: linear-gradient(#7b461c, #5b3212);
+  border-color: var(--ika-border-dark);
+  cursor: default;
 }
 
 .ika-military-content {
@@ -276,9 +317,24 @@
   text-decoration: none;
 }
 
+#ika-empire-btn.slot:hover a {
+  color: #542c0f;
+}
+
 .ika-empire-icon {
-  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  color: #fff1bd;
+  background: linear-gradient(#8a5a25, #542c0f);
+  border: 1px solid #d2a55f;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 700;
   line-height: 1;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
 }
 
 .ika-empire-label {
@@ -296,20 +352,22 @@
   z-index: 9998;
   min-height: 34px;
   padding: 7px 12px;
-  color: #ffffff;
-  background: #44515a;
-  border: 1px solid #2f3b42;
+  color: #fff1bd;
+  background: linear-gradient(#81501f, #542c0f);
+  border: 1px solid #d2a55f;
   border-radius: 4px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 6px 18px rgba(35, 22, 10, 0.28);
   cursor: pointer;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 12px;
   font-weight: 700;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
 }
 
 .ika-empire-fab:hover,
 .ika-empire-fab:focus {
-  background: #303b42;
+  color: #ffffff;
+  background: linear-gradient(#95602a, #673914);
   outline: none;
 }
 
