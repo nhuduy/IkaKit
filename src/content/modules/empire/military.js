@@ -8,7 +8,7 @@ import { appendCityCell, appendCityHeader } from './cityCell.js';
 const UNIT_TYPES = Object.freeze(Object.values(Military).filter((type) => !type.startsWith('ship_')));
 const SHIP_TYPES = Object.freeze(Object.values(Military).filter((type) => type.startsWith('ship_')));
 const CITY_COLUMN_WIDTH = 144;
-const ACTION_COLUMN_WIDTH = 46;
+const ACTION_COLUMN_WIDTH = 94;
 const UNIT_COLUMN_WIDTH = 42;
 
 let activeMilitaryTab = 'units';

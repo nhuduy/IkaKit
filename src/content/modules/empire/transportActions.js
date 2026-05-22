@@ -58,9 +58,9 @@ export function appendResourceTransportCell(row, city) {
   const cell = document.createElement('td');
   const inner = document.createElement('div');
 
-  cell.className = 'ika-transport-cell ika-transport-cell-single';
+  cell.className = 'ika-transport-cell';
   inner.className = 'ika-transport-actions';
-  inner.append(...actionsForCity(city, ['resources']));
+  inner.append(...actionsForCity(city, ['army', 'fleet', 'resources']));
 
   cell.appendChild(inner);
   row.appendChild(cell);
@@ -72,7 +72,7 @@ export function appendMilitaryTransportCell(row, city) {
 
   cell.className = 'ika-transport-cell ika-transport-cell-military';
   inner.className = 'ika-transport-actions';
-  inner.append(...actionsForCity(city, ['army', 'fleet']));
+  inner.append(...actionsForCity(city, ['army', 'fleet', 'resources']));
 
   cell.appendChild(inner);
   row.appendChild(cell);
