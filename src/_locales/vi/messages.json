@@ -1,0 +1,10 @@
+{
+  "appDesc": {
+    "message": "Tiện ích mở rộng Ikariam do cộng đồng xây dựng. Miễn phí và mã nguồn mở.",
+    "description": "Mô tả tiện ích hiển thị trên cửa hàng trình duyệt"
+  },
+  "appName": {
+    "message": "IkaKit",
+    "description": "Tên tiện ích"
+  }
+}
