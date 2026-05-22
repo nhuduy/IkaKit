@@ -14,6 +14,42 @@
     sulphur: 'sulfur',
     sulfur: 'sulfur'
   };
+  // Mapping numeric building ID → tên building (inverted từ BuildingsId trong const.js).
+  // Cần thiết vì Ikariam có thể trả về {building: 0, level: 3} thay vì {building: 'townHall', level: 3}.
+  var BUILDINGS_ID = {
+    0:  'townHall',
+    3:  'port',
+    4:  'academy',
+    5:  'shipyard',
+    6:  'barracks',
+    7:  'warehouse',
+    8:  'wall',
+    9:  'tavern',
+    10: 'museum',
+    11: 'palace',
+    12: 'embassy',
+    13: 'branchOffice',
+    15: 'workshop',
+    16: 'safehouse',
+    17: 'palaceColony',
+    18: 'forester',
+    19: 'stonemason',
+    20: 'glassblowing',
+    21: 'winegrower',
+    22: 'alchemist',
+    23: 'carpentering',
+    24: 'architect',
+    25: 'optician',
+    26: 'vineyard',
+    27: 'fireworker',
+    28: 'temple',
+    29: 'dump',
+    30: 'pirateFortress',
+    31: 'blackMarket',
+    32: 'marineChartArchive',
+    33: 'dockyard'
+  };
+
   var UNIT_IDS = {
     301: 'slinger',
     302: 'swordsman',
@@ -52,6 +88,14 @@
     return Object.prototype.hasOwnProperty.call(obj || {}, key);
   }
 
+  // Trả về argument đầu tiên != null/undefined (khác || vốn bỏ qua giá trị falsy như 0).
+  function firstDefined() {
+    for (var i = 0; i < arguments.length; i++) {
+      if (arguments[i] != null) return arguments[i];
+    }
+    return null;
+  }
+
   function normalizeResources(source) {
     if (!source || typeof source !== 'object') return null;
 
@@ -69,12 +113,19 @@
   }
 
   function normalizeBuildingType(raw) {
-    if (!raw) return null;
+    if (raw === null || typeof raw === 'undefined') return null;
 
-    var type = String(raw)
+    // Numeric building ID (e.g. 0 → 'townHall', 33 → 'dockyard').
+    // Phải check trước vì `if (!raw)` sẽ bỏ qua ID 0 (townHall).
+    var str = String(raw).trim();
+    if (/^\d+$/.test(str)) {
+      var numId = parseInt(str, 10);
+      return own(BUILDINGS_ID, numId) ? BUILDINGS_ID[numId] : null;
+    }
+
+    var type = str
       .replace(/^building_/, '')
-      .replace(/^constructionSite/, '')
-      .trim();
+      .replace(/^constructionSite/, '');
 
     return type && !type.startsWith('buildingGround') ? type : null;
   }
@@ -123,7 +174,7 @@
           if (!entry || typeof entry !== 'object') return;
           addBuilding(
             buildings,
-            entry.building || entry.type || entry.name,
+            firstDefined(entry.building, entry.type, entry.name),
             entry.level || entry.currentLevel || entry.buildingLevel,
             entry
           );
@@ -136,7 +187,7 @@
         if (entry && typeof entry === 'object') {
           addBuilding(
             buildings,
-            entry.building || entry.type || entry.name || key,
+            firstDefined(entry.building, entry.type, entry.name, key),
             entry.level || entry.currentLevel || entry.buildingLevel,
             entry
           );
