@@ -1,172 +1,267 @@
-/* IkaKit — CSS chính
-   Prefix: ika- để tránh conflict với CSS của game Ikariam.
-   Màu sắc tham khảo palette của game (nâu vàng cổ điển).
-*/
+/* IkaKit content styles. Keep selectors prefixed to avoid Ikariam UI conflicts. */
 
-/* ================================================================
-   EMPIRE MANAGER — Modal overlay
-================================================================ */
+.ika-modal,
+.ika-modal * {
+  box-sizing: border-box;
+}
 
-#ika-empire-modal {
+.ika-modal {
   position: fixed;
   inset: 0;
   z-index: 99999;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 40px;
+  padding: 36px 12px;
+  color: #2f3437;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
-/* Lớp tối phía sau */
 .ika-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  z-index: 0;
+  background: rgba(18, 22, 25, 0.48);
 }
 
-/* Cửa sổ chính */
 .ika-modal-window {
   position: relative;
   z-index: 1;
-  background: #1a130a;
-  border: 2px solid #8b6914;
-  border-radius: 4px;
-  width: 92%;
-  max-width: 1100px;
-  max-height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.85);
+  width: min(1120px, 96vw);
+  max-height: calc(100vh - 72px);
+  overflow: hidden;
+  background: #f7f7f4;
+  border: 1px solid #bfc4c2;
+  border-radius: 4px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.26);
 }
-
-/* ================================================================
-   Header
-================================================================ */
 
 .ika-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 9px 14px;
-  background: linear-gradient(180deg, #4e350f 0%, #2e1d08 100%);
-  border-bottom: 1px solid #8b6914;
-  border-radius: 2px 2px 0 0;
-  flex-shrink: 0;
+  min-height: 38px;
+  padding: 8px 12px;
+  background: #ececea;
+  border-bottom: 1px solid #cdd1cf;
 }
 
 .ika-modal-title {
-  color: #f5d78e;
-  font-size: 14px;
-  font-weight: bold;
-  letter-spacing: 0.4px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  color: #202427;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .ika-modal-close {
-  background: none;
-  border: 1px solid #6b4f10;
-  color: #c9a85e;
-  font-size: 17px;
-  line-height: 1;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  border-radius: 3px;
-  padding: 0;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s, color 0.15s;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: #4c5357;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
 }
 
-.ika-modal-close:hover {
-  background: #7a5c1e;
-  color: #f5d78e;
+.ika-modal-close:hover,
+.ika-modal-close:focus {
+  color: #111416;
+  background: #dedfdd;
+  border-color: #bdc3c0;
+  outline: none;
 }
-
-/* ================================================================
-   Tab bar
-================================================================ */
 
 .ika-modal-tabs {
   display: flex;
-  background: #0f0a03;
-  border-bottom: 1px solid #5c3e0a;
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  gap: 2px;
   overflow-x: auto;
+  padding: 6px 8px 0;
+  background: #f1f1ee;
+  border-bottom: 1px solid #cdd1cf;
 }
 
 .ika-tab {
-  padding: 9px 22px;
-  background: none;
-  border: none;
-  border-right: 1px solid #2e1d08;
-  color: #806030;
+  flex: 0 0 auto;
+  min-height: 29px;
+  padding: 6px 12px;
+  color: #525b60;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
   cursor: pointer;
   font-size: 12px;
-  font-weight: bold;
-  white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
-  flex-shrink: 0;
+  font-weight: 600;
 }
 
-.ika-tab:hover {
-  background: #221508;
-  color: #e0b860;
+.ika-tab:hover,
+.ika-tab:focus {
+  color: #202427;
+  background: #e6e7e4;
+  outline: none;
 }
 
-/* Tab đang active — dùng border-bottom chứ không phải class "selected" của game */
 .ika-tab-active {
-  background: #1a130a;
-  color: #f5d78e;
-  border-bottom: 2px solid #d4a520;
+  color: #1f262a;
+  background: #f7f7f4;
+  border-color: #cdd1cf;
   margin-bottom: -1px;
 }
 
-/* ================================================================
-   Content area
-================================================================ */
-
 .ika-modal-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 14px 16px;
-  color: #c9a85e;
-  min-height: 200px;
+  flex: 1 1 auto;
+  min-height: 210px;
+  overflow: auto;
+  padding: 12px;
+  background: #f7f7f4;
 }
 
-/* Scrollbar tối màu */
-.ika-modal-content::-webkit-scrollbar { width: 6px; }
-.ika-modal-content::-webkit-scrollbar-track { background: #0f0a03; }
-.ika-modal-content::-webkit-scrollbar-thumb { background: #5c3e0a; border-radius: 3px; }
-
-/* ================================================================
-   Trạng thái loading / lỗi
-================================================================ */
+.ika-loading,
+.ika-error {
+  padding: 36px 16px;
+  text-align: center;
+  font-size: 12px;
+}
 
 .ika-loading {
-  text-align: center;
-  color: #806030;
-  padding: 48px 20px;
-  font-style: italic;
-  font-size: 13px;
+  color: #667075;
 }
 
 .ika-error {
-  color: #cc6644;
-  padding: 24px;
-  text-align: center;
-  font-size: 13px;
+  color: #9b332c;
 }
 
-/* ================================================================
-   Button Empire trong left menu của game
-================================================================ */
+.ika-table {
+  width: 100%;
+  min-width: max-content;
+  border-collapse: collapse;
+  color: #2f3437;
+  background: #ffffff;
+  border: 1px solid #cfd5d2;
+  font-size: 12px;
+}
 
-/* Khi inject thành công vào .menu_slots */
-#ika-empire-btn.slot {
+.ika-table th,
+.ika-table td {
+  border: 1px solid #d9dedb;
+  padding: 5px 8px;
+  vertical-align: middle;
+}
+
+.ika-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: #263036;
+  background: #e9ece9;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ika-table td {
+  text-align: center;
+}
+
+.ika-table tbody tr:nth-child(even) td {
+  background: #fafafa;
+}
+
+.ika-table tbody tr:hover td {
+  background: #eef4f3;
+}
+
+.ika-city-name {
+  min-width: 130px;
+  color: #242a2e;
+  font-weight: 700;
+  text-align: left !important;
+  white-space: nowrap;
+}
+
+.ika-number {
+  min-width: 42px;
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.ika-total-row td {
+  background: #e7ecea !important;
+  border-top-color: #aeb8b4;
+  color: #20272b;
+  font-weight: 700;
+}
+
+.ika-military {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ika-military-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ika-tab-button {
+  min-height: 28px;
+  padding: 5px 12px;
+  color: #4f5a5f;
+  background: #ffffff;
+  border: 1px solid #c8cfcb;
+  border-radius: 3px;
   cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ika-tab-button:hover,
+.ika-tab-button:focus {
+  color: #202427;
+  background: #eef2f0;
+  outline: none;
+}
+
+.ika-tab-button.ika-active {
+  color: #ffffff;
+  background: #44515a;
+  border-color: #44515a;
+}
+
+.ika-military-content {
+  overflow: auto;
+}
+
+.ika-military-icon {
+  display: block;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 3px;
+  object-fit: contain;
+}
+
+.ika-table th.ika-military-unit {
+  min-width: 76px;
+  padding: 4px 6px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.ika-empire-btn {
+  cursor: pointer;
+}
+
+#ika-empire-btn.slot {
   list-style: none;
 }
 
@@ -175,166 +270,60 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-height: 42px;
+  padding: 3px 2px;
+  color: inherit;
   text-decoration: none;
-  color: #f5d78e;
-  padding: 4px 2px;
 }
 
 .ika-empire-icon {
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1;
 }
 
 .ika-empire-label {
-  font-size: 9px;
   margin-top: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.1;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
 }
 
-/* Fallback: nút nổi khi không inject được vào left menu */
 .ika-empire-fab {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  right: 18px;
+  bottom: 18px;
   z-index: 9998;
-  background: #2e1d08;
-  border: 2px solid #8b6914;
-  color: #f5d78e;
-  padding: 9px 16px;
-  cursor: pointer;
+  min-height: 34px;
+  padding: 7px 12px;
+  color: #ffffff;
+  background: #44515a;
+  border: 1px solid #2f3b42;
   border-radius: 4px;
-  font-size: 13px;
-  font-weight: bold;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-  transition: background 0.15s;
-}
-
-.ika-empire-fab:hover {
-  background: #4e350f;
-}
-
-/* ================================================================
-   Table chung dùng trong các Empire modules
-================================================================ */
-
-.ika-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-  color: #c9a85e;
-}
-
-.ika-table th {
-  background: #2a1d08;
-  color: #f5d78e;
-  padding: 6px 10px;
-  border: 1px solid #3d2b0d;
-  font-weight: bold;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.ika-table th.ika-th-left {
-  text-align: left;
-}
-
-.ika-table td {
-  padding: 5px 10px;
-  border: 1px solid #2a1d08;
-  text-align: center;
-  vertical-align: middle;
-}
-
-.ika-table td.ika-td-left {
-  text-align: left;
-}
-
-.ika-table tr:hover td {
-  background: #1f1508;
-}
-
-/* Cột tên city — căn trái */
-.ika-table td.ika-city-name {
-  text-align: left;
-  white-space: nowrap;
-  font-weight: bold;
-  color: #d4aa60;
-}
-
-/* Cột số liệu — căn phải */
-.ika-table td.ika-number {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Hàng tổng Σ — alias cho .ika-row-total */
-.ika-row-total td,
-.ika-total-row td {
-  background: #241908;
-  color: #f5d78e;
-  font-weight: bold;
-  border-top: 1px solid #8b6914;
-}
-
-/* Cell giá trị 0 */
-.ika-table td.ika-zero {
-  color: #4a3612;
-}
-
-/* ================================================================
-   MILITARY — Tab con Units / Ships
-================================================================ */
-
-.ika-military {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.ika-tabs.ika-military-tabs {
-  display: flex;
-  gap: 4px;
-}
-
-.ika-tab-button {
-  padding: 6px 16px;
-  background: #0f0a03;
-  border: 1px solid #3d2b0d;
-  color: #806030;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
   cursor: pointer;
-  border-radius: 3px;
+  font-family: Arial, Helvetica, sans-serif;
   font-size: 12px;
-  font-weight: bold;
-  transition: background 0.15s, color 0.15s;
+  font-weight: 700;
 }
 
-.ika-tab-button:hover {
-  background: #221508;
-  color: #e0b860;
+.ika-empire-fab:hover,
+.ika-empire-fab:focus {
+  background: #303b42;
+  outline: none;
 }
 
-.ika-tab-button.ika-active {
-  background: #2e1d08;
-  color: #f5d78e;
-  border-color: #8b6914;
-}
+@media (max-width: 640px) {
+  .ika-modal {
+    padding: 16px 8px;
+  }
 
-/* Icon unit trong header military */
-.ika-military-icon {
-  display: block;
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  margin: 0 auto 2px;
-}
+  .ika-modal-window {
+    width: 100%;
+    max-height: calc(100vh - 32px);
+  }
 
-.ika-table th.ika-military-unit {
-  white-space: nowrap;
-  font-size: 10px;
-  padding: 4px 6px;
-}
-
-.ika-military-content {
-  overflow-x: auto;
+  .ika-modal-content {
+    padding: 8px;
+  }
 }
