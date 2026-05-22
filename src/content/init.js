@@ -1,0 +1,26 @@
+// IkaKit — Entry point
+// Inject vào tất cả trang ikariam.gameforge.com
+
+import navigation from './helpers/navigation.js';
+import gameData   from './helpers/gameData.js';
+import empire     from './modules/empire/index.js';
+
+function init() {
+  console.log('[IkaKit] Đã khởi động. Trang hiện tại:', navigation.currentPage());
+
+  // Khởi động Empire Manager
+  empire.init();
+
+  // Lắng nghe điều hướng — cập nhật UI khi user chuyển trang
+  navigation.onChange((pageName) => {
+    console.log('[IkaKit] Chuyển sang trang:', pageName);
+    empire.onPageChange(pageName);
+  });
+}
+
+// Chờ DOM sẵn sàng rồi mới khởi động
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}

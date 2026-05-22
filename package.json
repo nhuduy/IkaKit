@@ -1,0 +1,15 @@
+{
+  "name": "ikakit",
+  "version": "1.0.0",
+  "description": "A community-built Chrome extension for Ikariam. Adds useful tools and quality-of-life improvements to your gameplay. Free and open source. Inspired by IkaEasy (MIT) by vltansky",
+  "type": "module",
+  "scripts": {
+    "build:chrome": "node scripts/build.js chrome",
+    "build:firefox": "node scripts/build.js firefox",
+    "build": "node scripts/build.js chrome && node scripts/build.js firefox"
+  },
+  "dependencies": {
+    "webextension-polyfill": "^0.12.0"
+  },
+  "devDependencies": {}
+}
