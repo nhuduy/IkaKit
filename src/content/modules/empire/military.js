@@ -2,6 +2,7 @@
 // Render quân đội theo 2 tab: lục quân và hải quân.
 
 import { Military } from '../../const.js';
+import gameData from '../../helpers/gameData.js';
 
 const UNIT_TYPES = Object.freeze(Object.values(Military).filter((type) => !type.startsWith('ship_')));
 const SHIP_TYPES = Object.freeze(Object.values(Military).filter((type) => type.startsWith('ship_')));
@@ -57,6 +58,58 @@ function appendTextCell(row, tagName, text, className = '') {
   return cell;
 }
 
+function appendTransportHeader(row) {
+  const th = document.createElement('th');
+  th.className = 'ika-transport-header';
+  th.title = 'Actions';
+  row.appendChild(th);
+}
+
+function createActionButton(label, title, params) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'ika-transport-button';
+  button.textContent = label;
+  button.title = title;
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    gameData.openGameView(params);
+  });
+
+  return button;
+}
+
+function appendTransportCell(row, city) {
+  const cell = document.createElement('td');
+  const inner = document.createElement('div');
+  const cityId = city?.id;
+
+  cell.className = 'ika-transport-cell';
+  inner.className = 'ika-transport-actions';
+
+  if (cityId) {
+    inner.append(
+      createActionButton('R', 'Transport resources', {
+        view: 'transport',
+        destinationCityId: cityId,
+      }),
+      createActionButton('F', 'Deploy fleet', {
+        view: 'deployment',
+        deploymentType: 'fleet',
+        destinationCityId: cityId,
+      }),
+      createActionButton('A', 'Deploy army', {
+        view: 'deployment',
+        deploymentType: 'army',
+        destinationCityId: cityId,
+      }),
+    );
+  }
+
+  cell.appendChild(inner);
+  row.appendChild(cell);
+}
+
 function appendUnitHeader(row, type, kind) {
   const th = document.createElement('th');
   th.className = 'ika-military-unit';
@@ -78,12 +131,25 @@ function appendUnitHeader(row, type, kind) {
 function createTable(cities, types, kind) {
   const table = document.createElement('table');
   table.className = `ika-table ika-military-table ika-military-${kind}`;
+  const colgroup = document.createElement('colgroup');
   const thead = document.createElement('thead');
   const headRow = document.createElement('tr');
   const tbody = document.createElement('tbody');
   const totals = Object.fromEntries(types.map((type) => [type, 0]));
 
+  ['ika-col-city', 'ika-col-transport'].forEach((className) => {
+    const col = document.createElement('col');
+    col.className = className;
+    colgroup.appendChild(col);
+  });
+  types.forEach(() => {
+    const col = document.createElement('col');
+    col.className = 'ika-col-unit';
+    colgroup.appendChild(col);
+  });
+
   appendTextCell(headRow, 'th', 'City');
+  appendTransportHeader(headRow);
   types.forEach((type) => appendUnitHeader(headRow, type, kind));
   thead.appendChild(headRow);
 
@@ -91,6 +157,7 @@ function createTable(cities, types, kind) {
     const row = document.createElement('tr');
 
     appendTextCell(row, 'td', city?.name ?? `City ${city?.id ?? ''}`.trim(), 'ika-city-name');
+    appendTransportCell(row, city);
 
     types.forEach((type) => {
       const rawCount = getMilitaryCount(city, type);
@@ -106,14 +173,15 @@ function createTable(cities, types, kind) {
 
   const totalRow = document.createElement('tr');
   totalRow.className = 'ika-total-row';
-  appendTextCell(totalRow, 'td', 'Σ', 'ika-city-name');
+  const totalLabel = appendTextCell(totalRow, 'td', 'Σ', 'ika-city-name');
+  totalLabel.colSpan = 2;
 
   types.forEach((type) => {
     appendTextCell(totalRow, 'td', formatNumber(totals[type]), 'ika-number');
   });
 
   tbody.appendChild(totalRow);
-  table.append(thead, tbody);
+  table.append(colgroup, thead, tbody);
 
   return table;
 }

@@ -19,6 +19,7 @@ let _modal = null;
 let _activeTab = 'resources';
 let _activeModule = null;
 let _unsubscribeGameData = null;
+let _unsubscribeScanStatus = null;
 
 function _injectStyles() {
   if (document.getElementById('ika-empire-style')) return;
@@ -117,6 +118,51 @@ function _createLoading() {
   return loading;
 }
 
+function _formatScanStatus(data) {
+  const scan = data?.debug?.scan;
+  const cityCount = data?.debug?.cityCount ?? data?.cities?.length ?? 0;
+
+  if (!scan) {
+    return cityCount ? `${cityCount} cities` : 'Ready';
+  }
+
+  if (scan.inProgress) {
+    const total = Number(scan.total) || cityCount;
+    const fetched = Number(scan.fetched) || 0;
+    return total ? `Scanning ${fetched}/${total}` : 'Scanning';
+  }
+
+  if (scan.lastError) {
+    return 'Scan warning';
+  }
+
+  if (scan.total) {
+    return `Synced ${scan.total} cities`;
+  }
+
+  return cityCount ? `${cityCount} cities` : 'Ready';
+}
+
+function _updateScanStatus(data = gameData.get()) {
+  if (!_modal) return;
+
+  const status = _modal.querySelector('#ika-scan-status');
+  const refresh = _modal.querySelector('#ika-scan-refresh');
+  const scan = data?.debug?.scan;
+
+  if (status) {
+    status.textContent = _formatScanStatus(data);
+    status.classList.toggle('ika-scan-status-active', Boolean(scan?.inProgress));
+    status.classList.toggle('ika-scan-status-warning', Boolean(scan?.lastError && !scan?.inProgress));
+    status.title = scan?.lastError ? String(scan.lastError) : '';
+  }
+
+  if (refresh) {
+    refresh.disabled = Boolean(scan?.inProgress);
+    refresh.classList.toggle('ika-loading-button', Boolean(scan?.inProgress));
+  }
+}
+
 function _buildModal() {
   const modal = document.createElement('div');
   modal.id = 'ika-empire-modal';
@@ -135,6 +181,34 @@ function _buildModal() {
   const title = document.createElement('span');
   title.className = 'ika-modal-title';
   title.textContent = 'Empire Manager';
+
+  const actions = document.createElement('div');
+  actions.className = 'ika-modal-actions';
+
+  const scanStatus = document.createElement('span');
+  scanStatus.id = 'ika-scan-status';
+  scanStatus.className = 'ika-scan-status';
+  scanStatus.textContent = 'Ready';
+
+  const refresh = document.createElement('button');
+  refresh.id = 'ika-scan-refresh';
+  refresh.className = 'ika-scan-refresh';
+  refresh.type = 'button';
+  refresh.title = 'Refresh empire data';
+  refresh.textContent = 'Reload';
+  refresh.addEventListener('click', () => {
+    gameData.requestCityScan(true);
+    _updateScanStatus({
+      ...(gameData.get() ?? {}),
+      debug: {
+        ...((gameData.get() ?? {}).debug ?? {}),
+        scan: {
+          ...((gameData.get() ?? {}).debug?.scan ?? {}),
+          inProgress: true,
+        },
+      },
+    });
+  });
 
   const close = document.createElement('button');
   close.className = 'ika-modal-close';
@@ -161,7 +235,8 @@ function _buildModal() {
   content.id = 'ika-empire-content';
   content.appendChild(_createLoading());
 
-  header.append(title, close);
+  actions.append(scanStatus, refresh, close);
+  header.append(title, actions);
   windowEl.append(header, tabs, content);
   modal.append(overlay, windowEl);
 
@@ -181,6 +256,8 @@ async function _open() {
   document.body.appendChild(_modal);
   document.addEventListener('keydown', _onKeyDown);
   gameData.requestCityScan();
+  _updateScanStatus();
+  _unsubscribeScanStatus = gameData.onChange((data) => _updateScanStatus(data));
 
   await _switchTab(_activeTab);
 }
@@ -267,6 +344,10 @@ const empire = {
     if (_unsubscribeGameData) {
       _unsubscribeGameData();
       _unsubscribeGameData = null;
+    }
+    if (_unsubscribeScanStatus) {
+      _unsubscribeScanStatus();
+      _unsubscribeScanStatus = null;
     }
   },
 };

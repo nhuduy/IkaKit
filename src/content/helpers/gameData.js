@@ -82,8 +82,12 @@ const gameData = {
     return () => _listeners.delete(listener);
   },
 
-  requestCityScan() {
-    window.postMessage({ __ikakit: 'requestCityScan' }, '*');
+  requestCityScan(force = false) {
+    window.postMessage({ __ikakit: 'requestCityScan', force: Boolean(force) }, '*');
+  },
+
+  openGameView(params) {
+    window.postMessage({ __ikakit: 'openGameView', params }, '*');
   },
 };
 

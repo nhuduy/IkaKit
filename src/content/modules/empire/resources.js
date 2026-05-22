@@ -2,13 +2,13 @@
 // Render tài nguyên hiện có của từng thành phố.
 
 const RESOURCE_COLUMNS = Object.freeze([
-  ['wood', 'Wood'],
-  ['wine', 'Wine'],
-  ['marble', 'Marble'],
-  ['glass', 'Glass'],
-  ['sulfur', 'Sulfur'],
-  ['gold', 'Gold'],
-  ['population', 'Population'],
+  ['wood', 'Wood', 'icon_wood.png'],
+  ['wine', 'Wine', 'icon_wine.png'],
+  ['marble', 'Marble', 'icon_marble.png'],
+  ['glass', 'Glass', 'icon_glass.png'],
+  ['sulfur', 'Sulfur', 'icon_sulfur.png'],
+  ['gold', 'Gold', null],
+  ['population', 'Population', 'icon_population.png'],
 ]);
 
 function resolveContainer(container) {
@@ -50,9 +50,23 @@ function createHeader() {
   cityHeader.textContent = 'City';
   row.appendChild(cityHeader);
 
-  RESOURCE_COLUMNS.forEach(([, label]) => {
+  RESOURCE_COLUMNS.forEach(([key, label, icon]) => {
     const th = document.createElement('th');
-    th.textContent = label;
+    th.className = 'ika-resource-header';
+    th.title = label;
+
+    if (icon) {
+      const img = document.createElement('img');
+      img.className = 'ika-resource-icon';
+      img.alt = '';
+      img.src = browser.runtime.getURL(`assets/images/empire/resources/${icon}`);
+      th.appendChild(img);
+    }
+
+    const span = document.createElement('span');
+    span.textContent = key === 'gold' ? label : '';
+    span.className = icon ? 'ika-sr-label' : '';
+    th.appendChild(span);
     row.appendChild(th);
   });
 

@@ -60,6 +60,8 @@
       ],
       "resources": [
         "assets/images/*",
+        "assets/images/empire/*",
+        "assets/images/empire/resources/*",
         "assets/icon/*",
         "content/*",
         "content/helpers/*",

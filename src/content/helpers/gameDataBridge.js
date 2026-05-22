@@ -634,6 +634,90 @@
     });
   }
 
+  function fallbackCityIdFromUrl(rawUrl) {
+    if (!rawUrl) return null;
+
+    try {
+      var url = new URL(String(rawUrl), window.location.href);
+      return firstDefined(
+        url.searchParams.get('cityId'),
+        url.searchParams.get('currentCityId'),
+        url.searchParams.get('destinationCityId')
+      );
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function shouldInspectAjaxUrl(rawUrl) {
+    if (!rawUrl) return true;
+
+    try {
+      var url = new URL(String(rawUrl), window.location.href);
+      if (url.origin !== window.location.origin) return false;
+      return url.pathname.indexOf('/index.php') > -1 || url.searchParams.get('ajax') === '1';
+    } catch (_err) {
+      return true;
+    }
+  }
+
+  function inspectAjaxText(text, rawUrl) {
+    if (!text || typeof text !== 'string') return;
+    if (text.indexOf('changeView') === -1 && text.indexOf('updateGlobalData') === -1) return;
+
+    processAjaxResponse(text, fallbackCityIdFromUrl(rawUrl));
+    send();
+  }
+
+  function installAjaxObserver() {
+    if (window.__ikakitAjaxObserverInstalled) return;
+    window.__ikakitAjaxObserverInstalled = true;
+
+    if (typeof window.fetch === 'function') {
+      var originalFetch = window.fetch;
+      window.fetch = function() {
+        var input = arguments[0];
+        var rawUrl = input && input.url ? input.url : input;
+
+        return originalFetch.apply(this, arguments).then(function(response) {
+          try {
+            var responseUrl = response && response.url ? response.url : rawUrl;
+            if (response && shouldInspectAjaxUrl(responseUrl)) {
+              response.clone().text().then(function(text) {
+                inspectAjaxText(text, responseUrl);
+              }).catch(function() {});
+            }
+          } catch (_err) {}
+
+          return response;
+        });
+      };
+    }
+
+    if (typeof window.XMLHttpRequest === 'function') {
+      var originalOpen = window.XMLHttpRequest.prototype.open;
+      var originalSend = window.XMLHttpRequest.prototype.send;
+
+      window.XMLHttpRequest.prototype.open = function(method, url) {
+        this.__ikakitUrl = url;
+        return originalOpen.apply(this, arguments);
+      };
+
+      window.XMLHttpRequest.prototype.send = function() {
+        try {
+          this.addEventListener('loadend', function() {
+            try {
+              if (!shouldInspectAjaxUrl(this.__ikakitUrl || this.responseURL)) return;
+              inspectAjaxText(this.responseText, this.__ikakitUrl || this.responseURL);
+            } catch (_err) {}
+          });
+        } catch (_err) {}
+
+        return originalSend.apply(this, arguments);
+      };
+    }
+  }
+
   function ikariamFetch(params) {
     var actionRequest = params.actionRequest;
 
@@ -787,6 +871,26 @@
     scanAllCities(Boolean(event.data.force));
   });
 
+  window.addEventListener('message', function(event) {
+    if (event.source !== window) return;
+    if (!event.data || event.data.__ikakit !== 'openGameView') return;
+
+    var params = event.data.params;
+    if (!params || typeof params !== 'object') return;
+
+    var query = '?' + toQuery(params);
+
+    try {
+      if (typeof ajaxHandlerCall === 'function') {
+        ajaxHandlerCall(query);
+        return;
+      }
+    } catch (_err) {}
+
+    window.location.href = '/index.php' + query;
+  });
+
+  installAjaxObserver();
   setInterval(send, TICK);
   send();
 }());
