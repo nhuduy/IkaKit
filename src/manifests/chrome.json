@@ -24,10 +24,16 @@
         "http://*.ikariam.gameforge.com/*",
         "https://*.ikariam.gameforge.com/*"
       ],
-      "js": [
-        "libs/browser-polyfill.min.js",
-        "content/init.js"
+      "js": ["libs/browser-polyfill.min.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://*.ikariam.gameforge.com/*",
+        "https://*.ikariam.gameforge.com/*"
       ],
+      "js": ["content/init.js"],
+      "type": "module",
       "run_at": "document_idle"
     }
   ],
