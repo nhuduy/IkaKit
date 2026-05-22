@@ -11,6 +11,8 @@ const CITY_COLUMN_WIDTH = 144;
 const ACTION_COLUMN_WIDTH = 46;
 const UNIT_COLUMN_WIDTH = 42;
 
+let activeMilitaryTab = 'units';
+
 function resolveContainer(container) {
   return typeof container === 'string' ? document.querySelector(container) : container;
 }
@@ -161,8 +163,8 @@ const military = Object.freeze({
     const wrapper = document.createElement('div');
     const tabBar = document.createElement('div');
     const content = document.createElement('div');
-    const unitsButton = createTabButton('Units', true);
-    const shipsButton = createTabButton('Ships', false);
+    const unitsButton = createTabButton('Units', activeMilitaryTab === 'units');
+    const shipsButton = createTabButton('Ships', activeMilitaryTab === 'ships');
 
     wrapper.className = 'ika-military';
     tabBar.className = 'ika-tabs ika-military-tabs';
@@ -171,6 +173,7 @@ const military = Object.freeze({
     // Tab con chỉ đổi nội dung bảng, không cần đọc lại cities từ gameData.
     const showTab = (kind) => {
       const isUnits = kind === 'units';
+      activeMilitaryTab = isUnits ? 'units' : 'ships';
       unitsButton.classList.toggle('ika-active', isUnits);
       shipsButton.classList.toggle('ika-active', !isUnits);
       content.replaceChildren(createTable(
@@ -180,14 +183,22 @@ const military = Object.freeze({
       ));
     };
 
-    unitsButton.addEventListener('click', () => showTab('units'));
-    shipsButton.addEventListener('click', () => showTab('ships'));
+    unitsButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      showTab('units');
+    });
+    shipsButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      showTab('ships');
+    });
 
     tabBar.append(unitsButton, shipsButton);
     wrapper.append(tabBar, content);
     root.replaceChildren(wrapper);
 
-    showTab('units');
+    showTab(activeMilitaryTab);
   },
 });
 
