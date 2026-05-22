@@ -18,6 +18,7 @@ const TAB_LABELS = {
 let _modal = null;
 let _activeTab = 'resources';
 let _activeModule = null;
+let _unsubscribeGameData = null;
 
 function _injectStyles() {
   if (document.getElementById('ika-empire-style')) return;
@@ -179,6 +180,7 @@ async function _open() {
   _modal = _buildModal();
   document.body.appendChild(_modal);
   document.addEventListener('keydown', _onKeyDown);
+  gameData.requestCityScan();
 
   await _switchTab(_activeTab);
 }
@@ -190,6 +192,10 @@ async function _switchTab(tab) {
     _activeModule.destroy();
   }
   _activeModule = null;
+  if (_unsubscribeGameData) {
+    _unsubscribeGameData();
+    _unsubscribeGameData = null;
+  }
 
   _modal.querySelectorAll('.ika-tab').forEach((button) => {
     button.classList.toggle('ika-tab-active', button.dataset.tab === tab);
@@ -205,6 +211,10 @@ async function _switchTab(tab) {
     const { default: mod } = await import('./' + tab + '.js');
     _activeModule = mod;
     mod.render(content, gameData.getCities());
+    _unsubscribeGameData = gameData.onChange((data) => {
+      if (!_modal || _activeModule !== mod) return;
+      mod.render(content, data?.cities ?? []);
+    });
   } catch (err) {
     console.error('[IkaKit] Không load được module "' + tab + '":', err);
 
@@ -254,6 +264,10 @@ const empire = {
       _activeModule.destroy();
     }
     _activeModule = null;
+    if (_unsubscribeGameData) {
+      _unsubscribeGameData();
+      _unsubscribeGameData = null;
+    }
   },
 };
 

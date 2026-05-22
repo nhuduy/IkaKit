@@ -1,5 +1,17 @@
 (function() {
   var TICK = 500;
+  var CACHE_TTL = 5 * 60 * 1000;
+  var cityCache = {};
+  var scanState = {
+    inProgress: false,
+    requested: false,
+    fetched: 0,
+    total: 0,
+    lastStarted: null,
+    lastCompleted: null,
+    lastError: null,
+    revision: 0
+  };
   var RESOURCE_KEYS = {
     resource: 'wood',
     wood: 'wood',
@@ -78,10 +90,50 @@
     219: 'ship_ballooncarrier',
     220: 'ship_tender'
   };
+  var CITY_MILITARY_UNITS = [
+    null,
+    'phalanx',
+    'steamgiant',
+    'spearman',
+    'swordsman',
+    'slinger',
+    'archer',
+    'marksman',
+    'ram',
+    null,
+    'catapult',
+    'mortar',
+    'gyrocopter',
+    'bombardier',
+    'cook',
+    'medic',
+    'spartan'
+  ];
+  var CITY_MILITARY_SHIPS = [
+    null,
+    'ship_flamethrower',
+    'ship_steamboat',
+    'ship_ram',
+    'ship_catapult',
+    'ship_ballista',
+    'ship_mortar',
+    'ship_rocketship',
+    'ship_submarine',
+    null,
+    'ship_paddlespeedship',
+    'ship_ballooncarrier',
+    'ship_tender'
+  ];
 
   function asNumber(value, fallback) {
     var number = parseInt(value, 10);
     return Number.isFinite(number) ? number : fallback;
+  }
+
+  function textNumber(value) {
+    if (value === null || typeof value === 'undefined') return 0;
+    var normalized = String(value).replace(/[^\d-]/g, '');
+    return asNumber(normalized, 0);
   }
 
   function own(obj, key) {
@@ -94,6 +146,18 @@
       if (arguments[i] != null) return arguments[i];
     }
     return null;
+  }
+
+  function mergeObject(target, source) {
+    if (!source || typeof source !== 'object') return target;
+
+    Object.keys(source).forEach(function(key) {
+      if (source[key] !== null && typeof source[key] !== 'undefined') {
+        target[key] = source[key];
+      }
+    });
+
+    return target;
   }
 
   function normalizeResources(source) {
@@ -280,6 +344,54 @@
     return city;
   }
 
+  function mergeCachedCity(city, cached) {
+    if (!cached || typeof cached !== 'object') return city;
+
+    [
+      'name',
+      'islandId',
+      'coords',
+      'tradegood',
+      'isCapital',
+      'relationship',
+      'gold',
+      'population'
+    ].forEach(function(key) {
+      if (cached[key] !== null && typeof cached[key] !== 'undefined') {
+        city[key] = cached[key];
+      }
+    });
+
+    if (cached.resources) city.resources = mergeObject(city.resources || {}, cached.resources);
+    if (cached.buildings) city.buildings = mergeObject(city.buildings || {}, cached.buildings);
+    if (cached.military) city.military = mergeObject(city.military || {}, cached.military);
+    if (cached.updatedAt) city.updatedAt = cached.updatedAt;
+
+    return city;
+  }
+
+  function cachePatch(cityId, patch) {
+    var id = parseInt(cityId, 10);
+    if (!Number.isFinite(id) || !patch || typeof patch !== 'object') return;
+
+    var existing = cityCache[id] || { id: id };
+    mergeObject(existing, patch);
+
+    if (patch.resources) {
+      existing.resources = mergeObject(existing.resources || {}, patch.resources);
+    }
+    if (patch.buildings) {
+      existing.buildings = mergeObject(existing.buildings || {}, patch.buildings);
+    }
+    if (patch.military) {
+      existing.military = mergeObject(existing.military || {}, patch.military);
+    }
+
+    existing.updatedAt = Date.now();
+    cityCache[id] = existing;
+    scanState.revision += 1;
+  }
+
   function readCities(model) {
     var raw = model.relatedCityData || {};
     var selectedKey = raw.selectedCity || '';
@@ -322,12 +434,322 @@
     } catch(e) {}
   }
 
+  function applyCache(cities) {
+    cities.forEach(function(city) {
+      mergeCachedCity(city, cityCache[city.id]);
+    });
+  }
+
+  function toQuery(params) {
+    return Object.keys(params)
+      .filter(function(key) {
+        return params[key] !== null && typeof params[key] !== 'undefined';
+      })
+      .map(function(key) {
+        return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+      })
+      .join('&');
+  }
+
+  function extractAjaxItems(response) {
+    if (Array.isArray(response)) return response;
+    if (typeof response === 'string') {
+      try {
+        var parsed = JSON.parse(response);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (_err) {
+        return [];
+      }
+    }
+    return [];
+  }
+
+  function readChangeViewScriptParams(item) {
+    if (!item || item[0] !== 'changeView' || !Array.isArray(item[1])) return null;
+
+    var meta = item[1][2];
+    if (meta && typeof meta === 'object' && meta.viewScriptParams) {
+      return meta.viewScriptParams;
+    }
+
+    return null;
+  }
+
+  function readChangeViewHtml(item) {
+    if (!item || item[0] !== 'changeView' || !Array.isArray(item[1])) return null;
+
+    for (var i = 0; i < item[1].length; i++) {
+      if (typeof item[1][i] === 'string' && item[1][i].indexOf('militaryList') !== -1) {
+        return item[1][i];
+      }
+    }
+
+    return null;
+  }
+
+  function findDeepObject(root, predicate, depth) {
+    if (!root || typeof root !== 'object' || depth > 5) return null;
+    if (predicate(root)) return root;
+
+    var keys = Object.keys(root);
+    for (var i = 0; i < keys.length; i++) {
+      var found = findDeepObject(root[keys[i]], predicate, depth + 1);
+      if (found) return found;
+    }
+
+    return null;
+  }
+
+  function cacheFromGlobalData(data, fallbackCityId) {
+    if (!data || typeof data !== 'object') return;
+
+    if (data.actionRequest && typeof ikariam !== 'undefined' && ikariam.model) {
+      ikariam.model.actionRequest = data.actionRequest;
+    }
+
+    var backgroundData = data.backgroundData || {};
+    var headerData = data.headerData || {};
+    var cityId = parseInt(firstDefined(backgroundData.id, headerData.id, fallbackCityId), 10);
+    if (!Number.isFinite(cityId)) return;
+
+    var patch = {
+      id: cityId,
+      name: firstDefined(backgroundData.name, headerData.name),
+      islandId: firstDefined(backgroundData.islandId, headerData.islandId),
+      isCapital: firstDefined(backgroundData.isCapital, headerData.isCapital)
+    };
+
+    var resources = normalizeResources(headerData.currentResources)
+      || normalizeResources(headerData.resources)
+      || normalizeResources(data.currentResources)
+      || normalizeResources(data.resources);
+    var buildings = normalizeBuildings({ position: backgroundData.position })
+      || normalizeBuildings(backgroundData);
+    var military = normalizeMilitary(backgroundData) || normalizeMilitary(headerData) || normalizeMilitary(data);
+
+    if (resources) patch.resources = resources;
+    if (buildings) patch.buildings = buildings;
+    if (military) patch.military = military;
+
+    cachePatch(cityId, patch);
+  }
+
+  function cacheFromViewScriptParams(params, fallbackCityId) {
+    if (!params || typeof params !== 'object') return;
+
+    var citySource = params.city || params.backgroundData || params;
+    var candidate = findDeepObject(params, function(value) {
+      return Array.isArray(value.position) || Array.isArray(value.positions);
+    }, 0);
+
+    var cityId = parseInt(firstDefined(
+      citySource.id,
+      citySource.cityId,
+      params.cityId,
+      fallbackCityId
+    ), 10);
+    if (!Number.isFinite(cityId)) return;
+
+    var patch = {
+      id: cityId,
+      name: firstDefined(citySource.name, params.name),
+      islandId: firstDefined(citySource.islandId, params.islandId),
+      isCapital: firstDefined(citySource.isCapital, params.isCapital)
+    };
+
+    var resources = normalizeResources(params.currentResources)
+      || normalizeResources(params.resources)
+      || normalizeResources(citySource.resources)
+      || normalizeResources(citySource);
+    var buildings = normalizeBuildings(citySource)
+      || normalizeBuildings(params)
+      || normalizeBuildings(candidate);
+    var military = normalizeMilitary(citySource) || normalizeMilitary(params);
+
+    if (resources) patch.resources = resources;
+    if (buildings) patch.buildings = buildings;
+    if (military) patch.military = military;
+
+    cachePatch(cityId, patch);
+  }
+
+  function readMilitaryCountTable(doc, selector, types) {
+    var cells = doc.querySelectorAll(selector + ' .militaryList .count td');
+    var military = {};
+
+    types.forEach(function(type, index) {
+      if (!type || !cells[index]) return;
+      var count = textNumber(cells[index].textContent);
+      if (count > 0) military[type] = count;
+    });
+
+    return military;
+  }
+
+  function cacheFromCityMilitaryHtml(html, fallbackCityId) {
+    if (!html || typeof DOMParser === 'undefined') return;
+
+    var doc;
+    try {
+      doc = new DOMParser().parseFromString(html, 'text/html');
+    } catch (_err) {
+      return;
+    }
+
+    var cityInput = doc.querySelector('input[name="cityId"]');
+    var cityId = parseInt(firstDefined(cityInput && cityInput.value, fallbackCityId), 10);
+    if (!Number.isFinite(cityId)) return;
+
+    var military = mergeObject(
+      readMilitaryCountTable(doc, '#tabUnits', CITY_MILITARY_UNITS),
+      readMilitaryCountTable(doc, '#tabShips', CITY_MILITARY_SHIPS)
+    );
+
+    cachePatch(cityId, {
+      id: cityId,
+      military: military
+    });
+  }
+
+  function processAjaxResponse(response, fallbackCityId) {
+    var items = extractAjaxItems(response);
+
+    items.forEach(function(item) {
+      if (!Array.isArray(item)) return;
+
+      if (item[0] === 'updateGlobalData') {
+        cacheFromGlobalData(item[1], fallbackCityId);
+        return;
+      }
+
+      var params = readChangeViewScriptParams(item);
+      if (params) {
+        cacheFromViewScriptParams(params, fallbackCityId);
+      }
+
+      var html = readChangeViewHtml(item);
+      if (html) {
+        cacheFromCityMilitaryHtml(html, fallbackCityId);
+      }
+    });
+  }
+
+  function ikariamFetch(params) {
+    var actionRequest = params.actionRequest;
+
+    try {
+      if (!actionRequest && typeof ikariam !== 'undefined' && ikariam.model) {
+        actionRequest = ikariam.model.actionRequest;
+      }
+    } catch (_err) {}
+
+    var query = toQuery(mergeObject({
+      ajax: 1,
+      actionRequest: actionRequest
+    }, params));
+
+    return fetch('/index.php?' + query, {
+      credentials: 'same-origin',
+      headers: {
+        Accept: 'application/json, text/javascript, */*; q=0.01',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    }).then(function(response) {
+      return response.text();
+    });
+  }
+
+  function getOwnCityIds(cities) {
+    return cities
+      .filter(function(city) {
+        return city.relationship === 'ownCity' || city.relationship === 'own' || city.relationship === 'self';
+      })
+      .map(function(city) { return city.id; });
+  }
+
+  function cacheStillFresh(cityId) {
+    var cached = cityCache[cityId];
+    if (!cached || !cached.updatedAt) return false;
+    return Date.now() - cached.updatedAt < CACHE_TTL;
+  }
+
+  async function fetchCityOverview(cityId) {
+    var response = await ikariamFetch({
+      view: 'townHall',
+      cityId: cityId,
+      position: 0,
+      backgroundView: 'city',
+      currentCityId: cityId
+    });
+    processAjaxResponse(response, cityId);
+  }
+
+  async function fetchCityMilitary(cityId) {
+    var response = await ikariamFetch({
+      view: 'cityMilitary',
+      cityId: cityId,
+      backgroundView: 'city',
+      currentCityId: cityId
+    });
+    processAjaxResponse(response, cityId);
+  }
+
+  async function scanAllCities(force) {
+    if (scanState.inProgress) {
+      scanState.requested = true;
+      return;
+    }
+
+    try {
+      if (typeof ikariam === 'undefined' || !ikariam.model) return;
+
+      var parsed = readCities(ikariam.model);
+      var ids = getOwnCityIds(parsed.cities);
+      scanState.inProgress = true;
+      scanState.requested = false;
+      scanState.fetched = 0;
+      scanState.total = ids.length;
+      scanState.lastStarted = Date.now();
+      scanState.lastError = null;
+      scanState.revision += 1;
+      send();
+
+      for (var i = 0; i < ids.length; i++) {
+        var cityId = ids[i];
+        if (!force && cacheStillFresh(cityId)) {
+          scanState.fetched += 1;
+          continue;
+        }
+
+        try {
+          await fetchCityOverview(cityId);
+          await fetchCityMilitary(cityId);
+        } catch (error) {
+          scanState.lastError = String(error && error.message ? error.message : error);
+        }
+
+        scanState.fetched += 1;
+        send();
+      }
+    } finally {
+      scanState.inProgress = false;
+      scanState.lastCompleted = Date.now();
+      scanState.revision += 1;
+      send();
+
+      if (scanState.requested) {
+        scanAllCities(false);
+      }
+    }
+  }
+
   function send() {
     try {
       if (typeof ikariam === 'undefined' || !ikariam.model) return;
 
       var model = ikariam.model;
       var parsed = readCities(model);
+      applyCache(parsed.cities);
       enrichCurrentCity(parsed.cities, parsed.selectedCityId, model);
 
       window.postMessage({
@@ -345,12 +767,25 @@
             }),
             hasMilitary: parsed.cities.some(function(city) {
               return !!city.military;
-            })
+            }),
+            scan: {
+              inProgress: scanState.inProgress,
+              fetched: scanState.fetched,
+              total: scanState.total,
+              lastError: scanState.lastError,
+              revision: scanState.revision
+            }
           }
         }
       }, '*');
     } catch(e) {}
   }
+
+  window.addEventListener('message', function(event) {
+    if (event.source !== window) return;
+    if (!event.data || event.data.__ikakit !== 'requestCityScan') return;
+    scanAllCities(Boolean(event.data.force));
+  });
 
   setInterval(send, TICK);
   send();
