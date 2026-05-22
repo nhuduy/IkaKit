@@ -63,18 +63,17 @@ function _createMenuButton() {
   item.className = 'slot ika-empire-btn';
   item.title = 'Empire Manager';
 
-  const link = document.createElement('a');
-  link.href = 'javascript:void(0)';
-
   const icon = document.createElement('div');
-  icon.className = 'ika-empire-icon';
+  icon.className = 'image ika-empire-icon';
 
   const label = document.createElement('div');
-  label.className = 'ika-empire-label';
-  label.textContent = 'Empire';
+  const labelText = document.createElement('span');
+  label.className = 'name';
+  labelText.className = 'namebox ika-empire-label';
+  labelText.textContent = 'Empire';
 
-  link.append(icon, label);
-  item.appendChild(link);
+  label.appendChild(labelText);
+  item.append(icon, label);
   item.addEventListener('click', (event) => {
     event.preventDefault();
     empire.toggle();

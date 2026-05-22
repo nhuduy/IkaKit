@@ -142,7 +142,7 @@ function createHeader() {
   appendTransportHeader(row);
 
   [
-    ['Corruption', null, '%', 'ika-resource-corruption-cell'],
+    ['Corruption', 'corruption_24x24.png', 'Corruption', 'ika-resource-corruption-cell'],
     ['Housing space', 'icon_population.png', 'Housing', 'ika-resource-housing-cell'],
     ['Research per hour', 'icon_research.png', 'Research', 'ika-resource-research-cell'],
   ].forEach(([label, icon, fallback, className]) => {

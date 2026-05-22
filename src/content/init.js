@@ -4,17 +4,20 @@
 import navigation from './helpers/navigation.js';
 import gameData   from './helpers/gameData.js';
 import empire     from './modules/empire/index.js';
+import transport  from './modules/transport/index.js';
 
 function init() {
   console.log('[IkaKit] Đã khởi động. Trang hiện tại:', navigation.currentPage());
 
   // Khởi động Empire Manager
   empire.init();
+  transport.init(navigation.currentPage());
 
   // Lắng nghe điều hướng — cập nhật UI khi user chuyển trang
   navigation.onChange((pageName) => {
     console.log('[IkaKit] Chuyển sang trang:', pageName);
     empire.onPageChange(pageName);
+    transport.onPageChange(pageName);
   });
 }
 

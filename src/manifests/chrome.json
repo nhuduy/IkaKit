@@ -61,6 +61,7 @@
         "content/*",
         "content/helpers/*",
         "content/modules/empire/*",
+        "content/modules/transport/*",
         "css/*",
         "tpl/*"
       ]

@@ -1,7 +1,8 @@
 // IkaKit — Empire military table
 // Render quân đội theo 2 tab: lục quân và hải quân.
 
-import { Military } from '../../const.js';
+import { Buildings, Military } from '../../const.js';
+import gameData from '../../helpers/gameData.js';
 import { appendMilitaryTransportCell, appendTransportHeader } from './transportActions.js';
 import { appendCityCell, appendCityHeader } from './cityCell.js';
 
@@ -47,12 +48,56 @@ function getMilitaryCount(city, type) {
     ?? 0;
 }
 
+function getBuildingData(city, buildingType) {
+  const buildings = city?.buildings ?? {};
+  const buildingData = buildings[buildingType] ?? buildings[String(buildingType)] ?? null;
+
+  return Array.isArray(buildingData) ? buildingData[0] ?? null : buildingData;
+}
+
+function getPosition(buildingData) {
+  if (!buildingData || typeof buildingData !== 'object') {
+    return null;
+  }
+
+  const position = Number(buildingData.position);
+  return Number.isFinite(position) ? position : null;
+}
+
+function getTrainingBuilding(kind) {
+  return kind === 'ships' ? Buildings.SHIPYARD : Buildings.BARRACKS;
+}
+
 function iconPath(type, kind) {
   if (kind === 'ships') {
     return `/cdn/all/both/characters/fleet/60x60/${type}_faceright.png`;
   }
 
   return `/cdn/all/both/characters/military/x60_y60/y60_${type}_faceright.png`;
+}
+
+function makeTrainingShortcut(cell, city, kind) {
+  const buildingType = getTrainingBuilding(kind);
+  const buildingData = getBuildingData(city, buildingType);
+  const position = getPosition(buildingData);
+
+  if (!city?.id || position === null) {
+    return;
+  }
+
+  cell.classList.add('ika-building-clickable', 'ika-military-training-clickable');
+  cell.title = `${kind === 'ships' ? 'Shipyard' : 'Barracks'} - ${city.name ?? 'Town'}`;
+  cell.addEventListener('click', () => {
+    gameData.openGameView({
+      __ikakitMode: 'location',
+      view: buildingType,
+      cityId: city.id,
+      position,
+      backgroundView: 'city',
+      currentCityId: city.id,
+    });
+    document.querySelector('#ika-empire-modal .ika-modal-close')?.click();
+  });
 }
 
 function appendTextCell(row, tagName, text, className = '') {
@@ -121,7 +166,7 @@ function createTable(cities, types, kind) {
       if (Number.isFinite(count)) {
         totals[type] += count;
       }
-      appendTextCell(row, 'td', formatNumber(rawCount), 'ika-number');
+      makeTrainingShortcut(appendTextCell(row, 'td', formatNumber(rawCount), 'ika-number'), city, kind);
     });
 
     tbody.appendChild(row);
