@@ -36,7 +36,7 @@
 .ika-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(45, 27, 13, 0.42);
+  background: rgba(45, 27, 13, 0.08);
 }
 
 .ika-modal-window {
