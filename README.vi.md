@@ -28,13 +28,40 @@ Tài liệu tiếng Anh: [README.md](README.md)
 - Node.js
 - npm
 
-Cài dependencies:
+## Cài Đặt Từ Source
+
+Clone repository, cài dependencies, rồi build extension:
 
 ```bash
+git clone <repo-url>
+cd IkaKit
 npm install
+npm run build
 ```
 
-## Build
+Sau khi build xong, output nằm tại:
+
+```text
+dist/chrome/
+dist/firefox/
+```
+
+Load extension vào trình duyệt từ thư mục build tương ứng.
+
+### Chrome / Chromium
+
+1. Mở `chrome://extensions`.
+2. Bật `Developer mode`.
+3. Chọn `Load unpacked`.
+4. Chọn thư mục `dist/chrome`.
+
+### Firefox
+
+1. Mở `about:debugging#/runtime/this-firefox`.
+2. Chọn `Load Temporary Add-on`.
+3. Chọn file `dist/firefox/manifest.json`.
+
+## Lệnh Build
 
 Build cho Chrome/Chromium:
 
@@ -53,28 +80,6 @@ Build cả hai bản:
 ```bash
 npm run build
 ```
-
-Output sau khi build nằm tại:
-
-```text
-dist/chrome/
-dist/firefox/
-```
-
-## Cài Extension Để Test
-
-### Chrome / Chromium
-
-1. Mở `chrome://extensions`.
-2. Bật `Developer mode`.
-3. Chọn `Load unpacked`.
-4. Chọn thư mục `dist/chrome`.
-
-### Firefox
-
-1. Mở `about:debugging#/runtime/this-firefox`.
-2. Chọn `Load Temporary Add-on`.
-3. Chọn file `dist/firefox/manifest.json`.
 
 ## Cấu Trúc Dự Án
 

@@ -29,13 +29,40 @@ Vietnamese documentation: [README.vi.md](README.vi.md)
 - Node.js
 - npm
 
-Install dependencies:
+## Install From Source
+
+Clone the repository, install dependencies, then build the extension:
 
 ```bash
+git clone <repo-url>
+cd IkaKit
 npm install
+npm run build
 ```
 
-## Build
+After the build finishes, output is written to:
+
+```text
+dist/chrome/
+dist/firefox/
+```
+
+Load the extension into your browser from the matching build directory.
+
+### Chrome / Chromium
+
+1. Open `chrome://extensions`.
+2. Enable `Developer mode`.
+3. Click `Load unpacked`.
+4. Select `dist/chrome`.
+
+### Firefox
+
+1. Open `about:debugging#/runtime/this-firefox`.
+2. Click `Load Temporary Add-on`.
+3. Select `dist/firefox/manifest.json`.
+
+## Build Commands
 
 Build for Chrome/Chromium:
 
@@ -54,28 +81,6 @@ Build both targets:
 ```bash
 npm run build
 ```
-
-Build output is written to:
-
-```text
-dist/chrome/
-dist/firefox/
-```
-
-## Load The Extension Locally
-
-### Chrome / Chromium
-
-1. Open `chrome://extensions`.
-2. Enable `Developer mode`.
-3. Click `Load unpacked`.
-4. Select `dist/chrome`.
-
-### Firefox
-
-1. Open `about:debugging#/runtime/this-firefox`.
-2. Click `Load Temporary Add-on`.
-3. Select `dist/firefox/manifest.json`.
 
 ## Project Structure
 
