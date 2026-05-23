@@ -25,18 +25,23 @@ review the current game rules and decide carefully.
 
 ## Features
 
-- Empire Manager modal injected into Ikariam.
-- City overview tabs for:
-  - Resources: goods, housing, research, and corruption.
-  - Buildings: building levels, upgrades, and next-level costs.
-  - Military: land units and ships by city.
-  - Espionage: hideout, academy, and workshop levels.
-- City data scanner and local cache for faster empire overview rendering.
-- Quick action buttons for resource transport, army deployment, and fleet
-  deployment.
-- Quick amount buttons on transport forms.
-- SPA navigation tracking so the UI can refresh when Ikariam changes views.
-- English and Vietnamese extension metadata.
+The README currently documents 10 feature areas:
+
+1. Empire Manager modal injected directly into the Ikariam interface.
+2. Resources overview by city, including goods, housing, research, and
+   corruption.
+3. Buildings overview by city, including building levels, upgrade state, and
+   next-level costs.
+4. Military overview by city, including land units and ships.
+5. Espionage overview by city, including hideout, academy, and workshop levels.
+6. City data scanner for collecting city details from the game interface.
+7. Local city data cache for faster empire overview rendering.
+8. Quick action buttons for resource transport, army deployment, and fleet
+   deployment.
+9. Quick amount buttons on transport forms.
+10. SPA navigation tracking so the UI can refresh when Ikariam changes views.
+
+The extension also includes English and Vietnamese extension metadata.
 
 ## Requirements
 

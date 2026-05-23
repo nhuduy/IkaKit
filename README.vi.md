@@ -26,17 +26,23 @@ hiện tại và cân nhắc kỹ.
 
 ## Tính năng
 
-- Empire Manager dạng modal được inject vào Ikariam.
-- Các tab tổng quan theo thành phố:
-  - Resources: tài nguyên, nhà ở, nghiên cứu và tham nhũng.
-  - Buildings: cấp công trình, trạng thái nâng cấp và chi phí cấp tiếp theo.
-  - Military: lục quân và hải quân theo từng thành phố.
-  - Espionage: cấp nhà gián điệp, học viện và xưởng.
-- Quét dữ liệu thành phố và cache cục bộ để hiển thị tổng quan nhanh hơn.
-- Nút thao tác nhanh để chuyển tài nguyên, điều quân và điều hạm đội.
-- Nút tăng/giảm nhanh số lượng tài nguyên trong form vận chuyển.
-- Theo dõi điều hướng SPA để UI tự cập nhật khi Ikariam đổi view.
-- Metadata extension bằng tiếng Anh và tiếng Việt.
+README hiện mô tả 10 nhóm chức năng:
+
+1. Empire Manager dạng modal được inject trực tiếp vào giao diện Ikariam.
+2. Tổng quan Resources theo từng thành phố, gồm tài nguyên, nhà ở, nghiên cứu
+   và tham nhũng.
+3. Tổng quan Buildings theo từng thành phố, gồm cấp công trình, trạng thái nâng
+   cấp và chi phí cấp tiếp theo.
+4. Tổng quan Military theo từng thành phố, gồm lục quân và hải quân.
+5. Tổng quan Espionage theo từng thành phố, gồm cấp nhà gián điệp, học viện và
+   xưởng.
+6. Bộ quét dữ liệu thành phố để thu thập chi tiết thành phố từ giao diện game.
+7. Cache dữ liệu thành phố cục bộ để hiển thị tổng quan đế chế nhanh hơn.
+8. Nút thao tác nhanh để chuyển tài nguyên, điều quân và điều hạm đội.
+9. Nút chọn nhanh số lượng tài nguyên trong form vận chuyển.
+10. Theo dõi điều hướng SPA để UI tự cập nhật khi Ikariam đổi view.
+
+Extension cũng có metadata bằng tiếng Anh và tiếng Việt.
 
 ## Yêu cầu
 
