@@ -225,6 +225,14 @@ const gameData = {
   openGameView(params) {
     window.postMessage({ __ikakit: 'openGameView', params }, '*');
   },
+
+  changeCity(cityId) {
+    window.postMessage({ __ikakit: 'changeCity', cityId }, '*');
+  },
+
+  upgradeBuilding(params) {
+    window.postMessage({ __ikakit: 'upgradeBuilding', params }, '*');
+  },
 };
 
 export default gameData;

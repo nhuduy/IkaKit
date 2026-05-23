@@ -26,7 +26,7 @@ hiện tại và cân nhắc kỹ.
 
 ## Tính năng
 
-README hiện mô tả 10 nhóm chức năng:
+README hiện mô tả 12 nhóm chức năng:
 
 1. Empire Manager dạng modal được inject trực tiếp vào giao diện Ikariam.
 2. Tổng quan Resources theo từng thành phố, gồm tài nguyên, nhà ở, nghiên cứu
@@ -40,7 +40,11 @@ README hiện mô tả 10 nhóm chức năng:
 7. Cache dữ liệu thành phố cục bộ để hiển thị tổng quan đế chế nhanh hơn.
 8. Nút thao tác nhanh để chuyển tài nguyên, điều quân và điều hạm đội.
 9. Nút chọn nhanh số lượng tài nguyên trong form vận chuyển.
-10. Theo dõi điều hướng SPA để UI tự cập nhật khi Ikariam đổi view.
+10. Bấm vào tên thành phố trong Empire Manager để chuyển thẳng tới thành phố đó.
+11. Bộ theo dõi nâng cấp công trình trên màn hình thành phố: hiển thị vòng tròn
+    cấp công trình, tooltip chi phí/chênh lệch tài nguyên và cho phép nâng cấp
+    trực tiếp khi thành phố đủ tài nguyên.
+12. Theo dõi điều hướng SPA để UI tự cập nhật khi Ikariam đổi view.
 
 Extension cũng có metadata bằng tiếng Anh và tiếng Việt.
 
@@ -111,7 +115,9 @@ src/
   content/            Content scripts inject vào Ikariam
     helpers/          Storage, navigation và game data bridge
     modules/
+      cityWatcher/    Vòng tròn theo dõi/nâng cấp công trình trên town map
       empire/         Empire Manager và các tab tổng quan
+      militaryAlerts/ Cảnh báo sự kiện quân sự incoming
       transport/      Quick controls cho form vận chuyển
   css/                Style inject vào game
   assets/             Icon và hình ảnh UI

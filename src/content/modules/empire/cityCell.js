@@ -1,3 +1,5 @@
+import gameData from '../../helpers/gameData.js';
+
 const ISLAND_RESOURCE_ICONS = Object.freeze({
   1: 'icon_wine.png',
   wine: 'icon_wine.png',
@@ -51,13 +53,21 @@ export function appendCityHeader(row) {
 
 export function appendCityCell(row, city, tagName = 'td') {
   const cell = document.createElement(tagName);
-  const wrap = document.createElement('span');
+  const wrap = city?.id ? document.createElement('button') : document.createElement('span');
   const coords = formatCoords(city?.coords);
   const iconPath = islandIconPath(city);
   const name = city?.name ?? `City ${city?.id ?? ''}`.trim();
 
   cell.className = 'ika-city-name';
   wrap.className = 'ika-city-cell';
+  if (city?.id) {
+    wrap.classList.add('ika-city-cell-button');
+    wrap.type = 'button';
+    wrap.addEventListener('click', () => {
+      gameData.changeCity(city.id);
+      document.querySelector('#ika-empire-modal .ika-modal-close')?.click();
+    });
+  }
 
   if (iconPath) {
     const icon = document.createElement('img');

@@ -25,7 +25,7 @@ review the current game rules and decide carefully.
 
 ## Features
 
-The README currently documents 10 feature areas:
+The README currently documents 12 feature areas:
 
 1. Empire Manager modal injected directly into the Ikariam interface.
 2. Resources overview by city, including goods, housing, research, and
@@ -39,7 +39,11 @@ The README currently documents 10 feature areas:
 8. Quick action buttons for resource transport, army deployment, and fleet
    deployment.
 9. Quick amount buttons on transport forms.
-10. SPA navigation tracking so the UI can refresh when Ikariam changes views.
+10. Click a city name in Empire Manager to jump directly to that city.
+11. Construction Upgrade Watcher on the town map: shows per-building level
+    circles, next-level cost/difference tooltips, and one-click upgrade when the
+    city has enough resources.
+12. SPA navigation tracking so the UI can refresh when Ikariam changes views.
 
 The extension also includes English and Vietnamese extension metadata.
 
@@ -110,7 +114,9 @@ src/
   content/            Content scripts injected into Ikariam
     helpers/          Storage, navigation, and game data bridge helpers
     modules/
+      cityWatcher/    Town-map construction upgrade circles
       empire/         Empire Manager and overview tabs
+      militaryAlerts/ Incoming military event notifications
       transport/      Quick controls for transport forms
   css/                Styles injected into the game
   assets/             Icons and UI images

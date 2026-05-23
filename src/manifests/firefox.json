@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "IkaKit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "__MSG_appDesc__",
   "default_locale": "en",
   "browser_specific_settings": {
@@ -66,7 +66,9 @@
         "assets/icon/*",
         "content/*",
         "content/helpers/*",
+        "content/modules/cityWatcher/*",
         "content/modules/empire/*",
+        "content/modules/militaryAlerts/*",
         "content/modules/transport/*",
         "css/*",
         "tpl/*"

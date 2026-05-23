@@ -653,6 +653,28 @@
     return null;
   }
 
+  function maybeSendMilitaryAdvisorHtml(html) {
+    if (!html || typeof html !== 'string') return;
+
+    var lower = html.toLowerCase();
+    var looksMilitary =
+      lower.indexOf('militaryadvisor') !== -1
+      || lower.indexOf('eventmovement') !== -1
+      || lower.indexOf('militaryevent') !== -1
+      || lower.indexOf('military event') !== -1
+      || lower.indexOf('combat') !== -1
+      || lower.indexOf('attack') !== -1
+      || lower.indexOf('blockade') !== -1
+      || lower.indexOf('occupation') !== -1;
+
+    if (!looksMilitary) return;
+
+    window.postMessage({
+      __ikakit: 'militaryAdvisorHtml',
+      html: html
+    }, '*');
+  }
+
   function findDeepObject(root, predicate, depth) {
     if (!root || typeof root !== 'object' || depth > 5) return null;
     if (predicate(root)) return root;
@@ -833,6 +855,7 @@
       if (html) {
         cacheFromCityMilitaryHtml(html, fallbackCityId);
         cacheFromTownHallHtml(html, fallbackCityId);
+        maybeSendMilitaryAdvisorHtml(html);
       }
     });
   }
@@ -1025,6 +1048,22 @@
     processAjaxResponse(response, cityId);
   }
 
+  async function fetchMilitaryAdvisor() {
+    if (typeof ikariam === 'undefined' || !ikariam.model) return;
+
+    var selectedCityId = null;
+    try {
+      selectedCityId = readCities(ikariam.model).selectedCityId;
+    } catch (_err) {}
+
+    var response = await ikariamFetch({
+      view: 'militaryAdvisor',
+      backgroundView: 'city',
+      currentCityId: selectedCityId
+    });
+    processAjaxResponse(response, selectedCityId);
+  }
+
   async function scanAllCities(force) {
     if (scanState.inProgress) {
       scanState.requested = true;
@@ -1132,6 +1171,13 @@
 
   window.addEventListener('message', function(event) {
     if (event.source !== window) return;
+    if (!event.data || event.data.__ikakit !== 'requestMilitaryAdvisorScan') return;
+
+    fetchMilitaryAdvisor().catch(function() {});
+  });
+
+  window.addEventListener('message', function(event) {
+    if (event.source !== window) return;
     if (!event.data || event.data.__ikakit !== 'openGameView') return;
 
     var params = event.data.params;
@@ -1147,6 +1193,91 @@
     } catch (_err) {}
 
     window.location.href = '/index.php' + query;
+  });
+
+  window.addEventListener('message', function(event) {
+    if (event.source !== window) return;
+    if (!event.data || event.data.__ikakit !== 'changeCity') return;
+
+    var cityId = event.data.cityId;
+    if (!cityId) return;
+
+    try {
+      var cityInput = document.querySelector('#js_cityIdOnChange');
+      var changeForm = document.querySelector('#changeCityForm');
+      if (cityInput && changeForm && typeof ajaxHandlerCallFromForm === 'function') {
+        cityInput.value = cityId;
+        ajaxHandlerCallFromForm(changeForm);
+        setTimeout(function() {
+          try {
+            var selectedCity = ikariam && ikariam.model && ikariam.model.relatedCityData && ikariam.model.relatedCityData.selectedCity;
+            if (selectedCity && String(selectedCity).replace('city_', '') === String(cityId)) return;
+          } catch (_err2) {}
+
+          window.location.href = '/index.php?view=city&cityId=' + encodeURIComponent(cityId);
+        }, 300);
+        return;
+      }
+    } catch (_err) {}
+
+    window.location.href = '/index.php?view=city&cityId=' + encodeURIComponent(cityId);
+  });
+
+  window.addEventListener('message', function(event) {
+    if (event.source !== window) return;
+    if (!event.data || event.data.__ikakit !== 'upgradeBuilding') return;
+
+    var params = event.data.params;
+    if (!params || typeof params !== 'object') return;
+
+    var actionRequest = params.actionRequest;
+    try {
+      if (!actionRequest && typeof ikariam !== 'undefined' && ikariam.model) {
+        actionRequest = ikariam.model.actionRequest;
+      }
+    } catch (_err) {}
+
+    var cityId = params.cityId || params.currentCityId;
+    if (!cityId) {
+      try {
+        cityId = new URLSearchParams(window.location.search).get('cityId');
+      } catch (_err3) {}
+    }
+    if (!cityId) {
+      var cityInput = document.querySelector('#js_cityIdOnChange, input[name="cityId"]');
+      cityId = cityInput && cityInput.value;
+    }
+    if (!cityId) {
+      try {
+        var cityLink = document.querySelector('a[href*="cityId="]');
+        cityId = cityLink ? new URL(cityLink.href, window.location.href).searchParams.get('cityId') : cityId;
+      } catch (_err5) {}
+    }
+    if (!cityId) {
+      try {
+        var selectedCity = ikariam && ikariam.model && ikariam.model.relatedCityData && ikariam.model.relatedCityData.selectedCity;
+        cityId = selectedCity ? String(selectedCity).replace('city_', '') : cityId;
+      } catch (_err4) {}
+    }
+
+    if (!cityId) return;
+
+    var query = toQuery({
+      action: 'UpgradeExistingBuilding',
+      actionRequest: actionRequest,
+      cityId: cityId,
+      position: params.position,
+      level: params.level
+    });
+
+    try {
+      if (typeof ajaxHandlerCall === 'function') {
+        ajaxHandlerCall('/index.php?' + query);
+        return;
+      }
+    } catch (_err2) {}
+
+    window.location.href = '/index.php?' + query;
   });
 
   installAjaxObserver();

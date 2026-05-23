@@ -353,6 +353,23 @@
   overflow: hidden;
 }
 
+.ika-city-cell-button {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ika-city-cell-button:hover .ika-city-label,
+.ika-city-cell-button:focus-visible .ika-city-label {
+  color: #5b2f12;
+  text-decoration: underline;
+}
+
 .ika-city-resource-icon {
   flex: 0 0 auto;
   width: 18px;
@@ -487,6 +504,221 @@
 
 .ika-building-clickable:hover {
   background: #fcdbaa !important;
+}
+
+#ika-city-watchers {
+  position: absolute;
+  z-index: 999;
+  margin: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ika-city-watcher {
+  position: absolute;
+  width: 45px;
+  height: 0;
+  z-index: 999;
+  color: #5b3218;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  pointer-events: auto;
+}
+
+.ika-city-watcher:hover {
+  z-index: 99999;
+}
+
+.ika-city-watcher-circle {
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.73);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 24px;
+  text-align: center;
+}
+
+.ika-city-watcher[data-state="missing"] .ika-city-watcher-circle {
+  background: rgba(189, 28, 28, 0.78);
+}
+
+.ika-city-watcher[data-state="enough"] .ika-city-watcher-circle {
+  background: rgba(95, 113, 33, 0.78);
+}
+
+.ika-city-watcher[data-state="queued"] .ika-city-watcher-circle {
+  background: rgba(35, 114, 148, 0.78);
+}
+
+.ika-city-watcher[data-state="upgrading"] .ika-city-watcher-circle,
+.ika-city-watcher[data-state="final"] .ika-city-watcher-circle {
+  background: rgba(168, 169, 164, 0.78);
+}
+
+.ika-city-watcher-tooltip {
+  position: absolute;
+  top: -15px;
+  left: -10px;
+  min-width: 156px;
+  border: 1px solid #e4b873;
+  background: #fff9d7;
+  box-shadow: 0 2px 8px rgba(80, 45, 18, 0.18);
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.1s linear, visibility 0.1s linear;
+  visibility: hidden;
+}
+
+.ika-city-watcher:hover .ika-city-watcher-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ika-city-watcher-title {
+  display: block;
+  width: 100%;
+  height: 24px;
+  border: 0;
+  border-bottom: 1px solid #e4b873;
+  background: #faeac6;
+  color: #5b3218;
+  cursor: pointer;
+  font: inherit;
+  line-height: 22px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ika-city-watcher-title:hover {
+  background: #eadab6;
+}
+
+.ika-city-watcher-buttons {
+  display: flex;
+  gap: 26px;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+.ika-city-watcher-upgrade,
+.ika-city-watcher-downgrade {
+  position: relative;
+  width: 50px;
+  height: 20px;
+  border: 2px solid #8a5a2d;
+  background: linear-gradient(#fff0b7, #d9963f);
+  cursor: pointer;
+}
+
+.ika-city-watcher-downgrade {
+  background: linear-gradient(#f8d9a5, #bd5a29);
+}
+
+.ika-city-watcher-upgrade::before,
+.ika-city-watcher-downgrade::before {
+  position: absolute;
+  left: 50%;
+  content: "";
+  transform: translateX(-50%);
+}
+
+.ika-city-watcher-upgrade::before {
+  top: 3px;
+  border-right: 17px solid transparent;
+  border-bottom: 11px solid #f7d35b;
+  border-left: 17px solid transparent;
+}
+
+.ika-city-watcher-downgrade::before {
+  top: 4px;
+  border-top: 11px solid #c85a28;
+  border-right: 17px solid transparent;
+  border-left: 17px solid transparent;
+}
+
+.ika-city-watcher-upgrade:disabled,
+.ika-city-watcher-downgrade:disabled {
+  cursor: default;
+  filter: grayscale(1);
+  opacity: 0.52;
+}
+
+.ika-city-watcher-tooltip table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ika-city-watcher-tooltip th {
+  border: 1px dotted #e4b873;
+  border-bottom: 1px solid #e4b873;
+  background: #faeac6;
+  font-weight: 700;
+  padding: 1px 5px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ika-city-watcher-tooltip td {
+  height: 18px;
+  border: 1px dotted #e4b873;
+  line-height: 18px;
+  padding: 1px 5px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ika-city-watcher-insufficient tr:not(.ika-city-watcher-missing) td:last-child {
+  background: #009900;
+  color: #ffffff;
+}
+
+.ika-city-watcher-missing td:last-child {
+  background: #990000;
+  color: #ffffff;
+}
+
+.ika-city-watcher-resource {
+  display: block;
+  width: 20px;
+  height: 16px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 20px 16px;
+}
+
+.ika-city-watcher-resource-wood {
+  background-image: url("../assets/images/empire/resources/icon_wood.png");
+}
+
+.ika-city-watcher-resource-marble {
+  background-image: url("../assets/images/empire/resources/icon_marble.png");
+}
+
+.ika-city-watcher-resource-glass {
+  background-image: url("../assets/images/empire/resources/icon_glass.png");
+}
+
+.ika-city-watcher-resource-wine {
+  background-image: url("../assets/images/empire/resources/icon_wine.png");
+}
+
+.ika-city-watcher-resource-sulfur {
+  background-image: url("../assets/images/empire/resources/icon_sulfur.png");
+}
+
+.ika-city-watcher-final {
+  text-align: center !important;
 }
 
 .ika-military-training-clickable {
