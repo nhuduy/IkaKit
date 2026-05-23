@@ -9,6 +9,21 @@ content script, background script và `webextension-polyfill`.
 
 Tài liệu tiếng Anh: [README.md](README.md)
 
+## Cảnh Báo
+
+Source code này được chia sẻ cho cộng đồng sử dụng và tham khảo. Người dùng tự
+quyết định cách sử dụng và tự chịu trách nhiệm với mục đích sử dụng của mình.
+
+Tác giả không chịu trách nhiệm cho bất kỳ vấn đề, thiệt hại, xử lý tài khoản
+hoặc hậu quả nào phát sinh khi người dùng chỉnh sửa, build, phân phối hoặc sử
+dụng source code này cho mục đích riêng.
+
+Luật chơi Ikariam, chính sách của nhà phát hành và các giới hạn liên quan đến
+tính năng trả phí có thể thay đổi theo thời gian. Trước khi thêm hoặc sử dụng
+các chức năng nâng cao, đặc biệt là những chức năng có thể trùng hoặc cạnh tranh
+với tính năng premium/trả phí do nhà phát hành cung cấp, hãy tự kiểm tra luật
+hiện tại và cân nhắc kỹ.
+
 ## Tính năng
 
 - Empire Manager dạng modal được inject vào Ikariam.

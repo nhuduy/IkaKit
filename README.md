@@ -9,6 +9,20 @@ Manifest V3, content scripts, a background script, and `webextension-polyfill`.
 
 Vietnamese documentation: [README.vi.md](README.vi.md)
 
+## Warning
+
+This source code is shared for community use and learning. Use it at your own
+discretion and responsibility.
+
+The author is not responsible for any issues, losses, account actions, or other
+consequences that may happen when you modify, build, distribute, or use this
+source code for your own purposes.
+
+Ikariam rules, publisher policies, and paid-feature restrictions may change over
+time. Before adding or using advanced features, especially features that may
+overlap with premium or paid functionality offered by the game publisher, please
+review the current game rules and decide carefully.
+
 ## Features
 
 - Empire Manager modal injected into Ikariam.
