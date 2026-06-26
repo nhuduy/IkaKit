@@ -15,7 +15,14 @@ test trên nhiều trình duyệt nền Chromium, gồm Google Chrome, Microsoft
 Brave, Opera, Vivaldi, SRWare Iron và Cốc Cốc (Gang Jing Browser), cũng như
 Mozilla Firefox.
 
-Tài liệu tiếng Anh: [README.md](README.md)
+## Tài Liệu
+
+- Tài liệu tiếng Anh đầy đủ: [README.md](README.md)
+- Tài liệu tiếng Việt đầy đủ: [README.vi.md](README.vi.md)
+
+README tiếng Anh và tiếng Việt được duy trì như hai bản tài liệu đầy đủ. Các
+bản dịch ngôn ngữ khác trong tương lai nên là bản tóm tắt ngắn cho cộng đồng,
+gồm Installation, Features, FAQ và link về README tiếng Anh để đọc chi tiết.
 
 ## Demo
 

@@ -14,7 +14,14 @@ It has been tested on multiple Chromium-based browsers, including Google
 Chrome, Microsoft Edge, Brave, Opera, Vivaldi, SRWare Iron, and Cốc Cốc (Gang
 Jing Browser), as well as Mozilla Firefox.
 
-Vietnamese documentation: [README.vi.md](README.vi.md)
+## Documentation
+
+- Full English documentation: [README.md](README.md)
+- Full Vietnamese documentation: [README.vi.md](README.vi.md)
+
+English and Vietnamese README files are maintained as full documentation.
+Future translations should be shorter community summaries with Installation,
+Features, FAQ, and a link back to this English README for complete details.
 
 ## Demo
 
