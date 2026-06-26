@@ -117,13 +117,22 @@ export async function loadLanguage() {
 }
 
 export async function setLanguage(locale) {
-  const nextLanguage = applyLanguage(locale);
+  const previousLanguage = currentLanguage;
+  const nextLanguage = normalizeLocale(locale);
   loaded = true;
+
+  if (nextLanguage === previousLanguage) {
+    return currentLanguage;
+  }
 
   try {
     await storageSet({ [LANGUAGE_STORAGE_KEY]: nextLanguage });
   } catch (error) {
     console.warn('[IkaKit] Could not save UI language:', error);
+  }
+
+  if (currentLanguage === previousLanguage) {
+    applyLanguage(nextLanguage);
   }
 
   return nextLanguage;

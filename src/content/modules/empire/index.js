@@ -154,6 +154,20 @@ function _renderLanguageSelect() {
   return wrapper;
 }
 
+function _updateMenuButtonLabel() {
+  const button = document.getElementById('ika-empire-btn');
+  if (!button) return;
+
+  if (button.matches('button')) {
+    button.textContent = t('empire.button');
+    return;
+  }
+
+  button.title = t('empire.title');
+  const label = button.querySelector('.ika-empire-label');
+  if (label) label.textContent = t('empire.button');
+}
+
 function _formatScanStatus(data) {
   const scan = data?.debug?.scan;
   const cityCount = data?.debug?.cityCount ?? data?.cities?.length ?? 0;
@@ -212,6 +226,44 @@ function _updateScanStatus(data = gameData.get()) {
     refresh.disabled = Boolean(scan?.inProgress);
     refresh.classList.toggle('ika-loading-button', Boolean(scan?.inProgress));
   }
+}
+
+function _renderActiveModuleContent() {
+  if (!_modal || !_activeModule || typeof _activeModule.render !== 'function') return;
+
+  const content = _modal.querySelector('#ika-empire-content');
+  if (!content) return;
+
+  _activeModule.render(content, gameData.getCities());
+}
+
+function _refreshLanguageText() {
+  _updateMenuButtonLabel();
+  if (!_modal) return;
+
+  const title = _modal.querySelector('.ika-modal-title');
+  const refresh = _modal.querySelector('#ika-scan-refresh');
+  const close = _modal.querySelector('.ika-modal-close');
+  const languageSetting = _modal.querySelector('.ika-language-setting');
+
+  if (title) title.textContent = t('empire.title');
+  if (refresh) {
+    refresh.title = t('empire.refreshTitle');
+    refresh.textContent = t('empire.refresh');
+  }
+  if (close) close.title = t('common.close');
+
+  _modal.querySelectorAll('.ika-tab').forEach((button) => {
+    const tab = button.dataset.tab;
+    if (TAB_LABEL_KEYS[tab]) button.textContent = t(TAB_LABEL_KEYS[tab]);
+  });
+
+  if (languageSetting) {
+    languageSetting.replaceWith(_renderLanguageSelect());
+  }
+
+  _updateScanStatus();
+  _renderActiveModuleContent();
 }
 
 function _clampModalPosition(left, top, windowEl) {
@@ -375,11 +427,7 @@ async function _open() {
   _updateScanStatus();
   _unsubscribeScanStatus = gameData.onChange((data) => _updateScanStatus(data));
   _unsubscribeLanguage = onLanguageChange(() => {
-    if (!_modal) return;
-    const activeTab = _activeTab;
-    empire.close();
-    _activeTab = activeTab;
-    empire.open();
+    _refreshLanguageText();
   });
 
   await _switchTab(_activeTab);
