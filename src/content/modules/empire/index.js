@@ -4,6 +4,13 @@
 
 import storage  from '../../helpers/storage.js';
 import gameData from '../../helpers/gameData.js';
+import {
+  getLanguage,
+  onLanguageChange,
+  setLanguage,
+  supportedLocales,
+  t,
+} from '../../../shared/i18n/index.js';
 
 const STORAGE_KEY = 'ika_empire_active_tab';
 
@@ -21,6 +28,7 @@ let _activeTab = 'resources';
 let _activeModule = null;
 let _unsubscribeGameData = null;
 let _unsubscribeScanStatus = null;
+let _unsubscribeLanguage = null;
 let _modalPosition = null;
 
 function _injectStyles() {
@@ -116,6 +124,34 @@ function _createLoading() {
   loading.textContent = 'Đang tải...';
 
   return loading;
+}
+
+function _renderLanguageSelect() {
+  const wrapper = document.createElement('label');
+  const label = document.createElement('span');
+  const select = document.createElement('select');
+
+  wrapper.className = 'ika-language-setting';
+  label.className = 'ika-language-label';
+  label.textContent = t('empire.language.label');
+
+  select.className = 'ika-language-select';
+  select.title = t('empire.language.title');
+
+  supportedLocales().forEach((locale) => {
+    const option = document.createElement('option');
+    option.value = locale.code;
+    option.textContent = locale.label;
+    option.selected = locale.code === getLanguage();
+    select.appendChild(option);
+  });
+
+  select.addEventListener('change', () => {
+    setLanguage(select.value);
+  });
+
+  wrapper.append(label, select);
+  return wrapper;
 }
 
 function _formatScanStatus(data) {
@@ -307,7 +343,7 @@ function _buildModal() {
   content.id = 'ika-empire-content';
   content.appendChild(_createLoading());
 
-  actions.append(scanStatus, refresh, close);
+  actions.append(scanStatus, _renderLanguageSelect(), refresh, close);
   header.append(title, actions);
   windowEl.append(header, tabs, content);
   modal.append(overlay, windowEl);
@@ -336,6 +372,13 @@ async function _open() {
   gameData.requestResearchScan();
   _updateScanStatus();
   _unsubscribeScanStatus = gameData.onChange((data) => _updateScanStatus(data));
+  _unsubscribeLanguage = onLanguageChange(() => {
+    if (!_modal) return;
+    const activeTab = _activeTab;
+    empire.close();
+    _activeTab = activeTab;
+    empire.open();
+  });
 
   await _switchTab(_activeTab);
 }
@@ -413,6 +456,10 @@ const empire = {
     }
   },
 
+  open() {
+    _open();
+  },
+
   close() {
     if (!_modal) return;
 
@@ -431,6 +478,10 @@ const empire = {
     if (_unsubscribeScanStatus) {
       _unsubscribeScanStatus();
       _unsubscribeScanStatus = null;
+    }
+    if (_unsubscribeLanguage) {
+      _unsubscribeLanguage();
+      _unsubscribeLanguage = null;
     }
   },
 };

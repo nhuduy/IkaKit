@@ -136,6 +136,29 @@
   outline: none;
 }
 
+.ika-language-setting {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 19px;
+  color: var(--ika-accent-dark);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ika-language-select {
+  max-width: 124px;
+  min-height: 19px;
+  color: var(--ika-accent-dark);
+  background: rgba(255, 248, 220, 0.72);
+  border: 1px solid rgba(154, 107, 47, 0.62);
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+}
+
 .ika-scan-refresh:disabled {
   cursor: wait;
   opacity: 0.72;

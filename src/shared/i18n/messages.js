@@ -18,5 +18,7 @@ export const MESSAGES = Object.freeze({
     'common.close': 'Close',
     'common.language': 'Language',
     'common.settings': 'Settings',
+    'empire.language.label': 'Language',
+    'empire.language.title': 'Change UI language',
   }),
 });

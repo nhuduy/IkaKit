@@ -9,6 +9,7 @@ import militaryAlerts from './modules/militaryAlerts/index.js';
 import notificationAlerts from './modules/notificationAlerts/index.js';
 import cityWatcher from './modules/cityWatcher/index.js';
 import alerts from './modules/alerts/index.js';
+import { loadLanguage } from '../shared/i18n/index.js';
 
 function safeInit(name, callback) {
   try {
@@ -18,7 +19,8 @@ function safeInit(name, callback) {
   }
 }
 
-function init() {
+async function init() {
+  await loadLanguage();
   console.log('[IkaKit] Đã khởi động. Trang hiện tại:', navigation.currentPage());
 
   // Khởi động Empire Manager
