@@ -1,0 +1,10 @@
+{
+  "appDesc": {
+    "message": "Ikariam için topluluk yapımı bir eklenti. Ücretsiz ve açık kaynaklı.",
+    "description": "Extension description shown in browser store"
+  },
+  "appName": {
+    "message": "IkaKit",
+    "description": "Extension name"
+  }
+}

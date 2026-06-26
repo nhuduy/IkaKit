@@ -1,0 +1,10 @@
+{
+  "appDesc": {
+    "message": "為 Ikariam 打造的社群擴充功能。免費且開源。",
+    "description": "Extension description shown in browser store"
+  },
+  "appName": {
+    "message": "IkaKit",
+    "description": "Extension name"
+  }
+}

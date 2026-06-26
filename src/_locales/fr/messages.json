@@ -1,0 +1,10 @@
+{
+  "appDesc": {
+    "message": "Une extension communautaire pour Ikariam. Gratuite et open source.",
+    "description": "Extension description shown in browser store"
+  },
+  "appName": {
+    "message": "IkaKit",
+    "description": "Extension name"
+  }
+}

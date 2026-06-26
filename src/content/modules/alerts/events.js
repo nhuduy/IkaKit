@@ -232,7 +232,7 @@ const alertEvents = Object.freeze({
 
   getStatus() {
     return {
-      title: 'Events',
+      title: t('alerts.tab.events'),
       message: t('events.status.activeEvents', {
         count: gameEvents.getActiveEvents().length,
         eventLabel: t(gameEvents.getActiveEvents().length === 1 ? 'events.copy.eventSingular' : 'events.copy.eventPlural'),
