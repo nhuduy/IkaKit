@@ -46,6 +46,18 @@ then keep each feature commit narrow and auditable.
 - Builder/resource support UI.
 - Automation categories or automation wake behavior.
 
+## Compact Event Store Contract
+
+- `emit(event)` normalizes one event, stores it if active, notifies listeners,
+  and relays only newly inserted events to the background notification path.
+- `emitMany(events)` is the batch form of `emit`.
+- `on(listener)` subscribes to store changes and returns an unsubscribe
+  function. `onChange(listener)` remains as a compatibility alias.
+- `getActiveEvents()` returns non-expired events sorted by expiry.
+- `toJSON()` returns clone-safe active events for copy/export.
+- `clear()` empties only the in-memory store and notifies listeners; it does not
+  touch account storage or automation state.
+
 ## Verification
 
 - Build Chrome and Firefox bundles after each feature phase.
