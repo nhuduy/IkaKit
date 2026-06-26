@@ -565,6 +565,14 @@
   background: var(--ika-row-hover);
 }
 
+.ika-table tbody tr.ika-row-under-attack td {
+  background: #fff1e8;
+}
+
+.ika-table tbody tr.ika-row-under-attack:hover td {
+  background: #ffe2cf;
+}
+
 .ika-number {
   min-width: 53px;
   text-align: right !important;
@@ -973,6 +981,124 @@
   font-variant-numeric: tabular-nums;
 }
 
+.ika-resource-storage-cell {
+  position: relative;
+  width: 128px;
+  min-width: 128px;
+  max-width: 128px;
+  padding-right: 5px !important;
+  padding-left: 5px !important;
+  cursor: default;
+  overflow: visible;
+}
+
+.ika-resource-storage-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4px;
+  min-height: 20px;
+}
+
+.ika-resource-amount,
+.ika-resource-production {
+  min-width: 0;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.ika-resource-amount {
+  flex: 1 1 auto;
+  color: #000000;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+}
+
+.ika-resource-amount.ika-bad {
+  color: #000000;
+}
+
+.ika-resource-production {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  text-align: right;
+}
+
+.ika-resource-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 7px);
+  z-index: 10;
+  display: none;
+  min-width: 188px;
+  max-width: 260px;
+  padding: 8px 10px;
+  color: var(--ika-ink);
+  background: #fff4cf;
+  border: 1px solid #7a4c20;
+  border-radius: 4px;
+  box-shadow: 0 2px 7px rgba(52, 28, 8, 0.28);
+  font-size: 10px;
+  line-height: 1.25;
+  pointer-events: none;
+  text-align: left;
+  transform: translateX(-50%);
+  white-space: normal;
+}
+
+.ika-resource-tooltip::after {
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 8px;
+  height: 8px;
+  background: #fff4cf;
+  border-right: 1px solid #7a4c20;
+  border-bottom: 1px solid #7a4c20;
+  content: '';
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.ika-resource-storage-cell:hover .ika-resource-tooltip,
+.ika-resource-storage-cell:focus .ika-resource-tooltip {
+  display: block;
+}
+
+.ika-resource-tooltip-title {
+  margin-bottom: 4px;
+  color: var(--ika-accent-dark);
+  font-weight: 700;
+  text-align: center;
+}
+
+.ika-resource-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 2px 0;
+  border-top: 1px dotted rgba(154, 107, 47, 0.34);
+}
+
+.ika-resource-tooltip-row:first-of-type {
+  border-top: 0;
+}
+
+.ika-resource-tooltip-row span {
+  color: var(--ika-ink-soft);
+  white-space: nowrap;
+}
+
+.ika-resource-tooltip-row strong {
+  color: var(--ika-ink);
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+
 .ika-resource-corruption-cell {
   min-width: 30px;
 }
@@ -1017,11 +1143,31 @@
   background: #cc1515;
 }
 
+.ika-resource-progress .ika-progress-safe {
+  background: #078b10;
+}
+
+.ika-resource-progress .ika-progress-unsafe {
+  background: #cc1515;
+}
+
 .ika-total-row td {
   background: #ead293 !important;
   border-top: 2px solid var(--ika-border-dark);
   color: var(--ika-accent-dark);
   font-weight: 700;
+}
+
+.ika-resources-table .ika-total-row td {
+  height: 26px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.ika-resources-table .ika-total-row .ika-number {
+  min-width: 64px;
 }
 
 .ika-military-table .ika-total-row td {
