@@ -52,3 +52,12 @@ The notification background router must support these content-script messages:
 
 The router must keep all visible strings branded as IkaKit and must not import or
 initialize automation modules.
+
+## Phase 2 Verification
+
+- `npm run build:chrome` passed.
+- `npm run build:firefox` passed.
+- Background routing now handles `militaryEvents`, `gameEvents`,
+  `notificationAlertTest`, and `clearMilitaryAlertTests`.
+- Background, entrypoint, and manifests contain no Automation Center, auto-send,
+  route schedule, construction, or IkaLabs references.
