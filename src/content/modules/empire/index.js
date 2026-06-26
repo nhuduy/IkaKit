@@ -127,13 +127,28 @@ function _createLoading() {
 }
 
 function _renderLanguageSelect() {
-  const wrapper = document.createElement('label');
+  const wrapper = document.createElement('div');
+  const toggle = document.createElement('button');
+  const popover = document.createElement('div');
+  const field = document.createElement('label');
   const label = document.createElement('span');
   const select = document.createElement('select');
 
   wrapper.className = 'ika-language-setting';
+  popover.className = 'ika-language-popover';
+  field.className = 'ika-language-field';
   label.className = 'ika-language-label';
   label.textContent = t('empire.language.label');
+
+  toggle.className = 'ika-language-toggle';
+  toggle.type = 'button';
+  toggle.title = t('empire.language.settingsTitle');
+  toggle.setAttribute('aria-label', t('empire.language.settingsTitle'));
+  toggle.textContent = '⚙';
+  toggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    wrapper.classList.toggle('ika-language-setting-open');
+  });
 
   select.className = 'ika-language-select';
   select.title = t('empire.language.title');
@@ -147,10 +162,18 @@ function _renderLanguageSelect() {
   });
 
   select.addEventListener('change', () => {
+    wrapper.classList.remove('ika-language-setting-open');
     setLanguage(select.value);
   });
 
-  wrapper.append(label, select);
+  field.append(label, select);
+  popover.appendChild(field);
+  wrapper.append(toggle, popover);
+
+  wrapper.addEventListener('click', (event) => {
+    event.stopPropagation();
+  });
+
   return wrapper;
 }
 
@@ -328,6 +351,11 @@ function _buildModal() {
   const modal = document.createElement('div');
   modal.id = 'ika-empire-modal';
   modal.className = 'ika-modal';
+  modal.addEventListener('click', () => {
+    modal.querySelectorAll('.ika-language-setting-open').forEach((element) => {
+      element.classList.remove('ika-language-setting-open');
+    });
+  });
 
   const overlay = document.createElement('div');
   overlay.className = 'ika-modal-overlay';
