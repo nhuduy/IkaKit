@@ -78,3 +78,11 @@ initialize automation modules.
 - Military Alerts initializes without Automation Center or settings panel imports.
 - Military Alerts, helpers, background, manifests, and alert CSS contain no
   IkaLabs or automation module references.
+
+## Phase 4 Town News Extraction
+
+- Port only the Town News parsing, dedupe, alert history, settings, and test
+  notification behavior.
+- Expose an independent module API: `init`, `renderPanel`, and `getStatus`.
+- Remove Automation Center render hooks and rename automation-specific state or
+  classes to Alerts panel equivalents.
