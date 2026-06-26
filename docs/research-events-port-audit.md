@@ -57,3 +57,13 @@ then keep each feature commit narrow and auditable.
   `Resources`, `Buildings`, `Research`, `Military`, `Espionage`.
 - Confirm Alerts tabs are:
   `Military Alerts`, `Town News`, `Events`.
+
+## Phase 1 Verification
+
+- `npm run build:chrome` passed.
+- `npm run build:firefox` passed.
+- Empire tab list is now `resources`, `buildings`, `research`, `military`,
+  `espionage`.
+- Static audit found no runtime imports or manifest entries for automation
+  modules. The only `IkaLabs` and automation-scope strings are this audit
+  document's boundary notes.
