@@ -1,7 +1,9 @@
 (function() {
   var TICK = 500;
   var CACHE_TTL = 5 * 60 * 1000;
+  var RESEARCH_CACHE_TTL = 24 * 60 * 60 * 1000;
   var cityCache = {};
+  var researchCache = null;
   var scanState = {
     inProgress: false,
     requested: false,
@@ -130,6 +132,7 @@
     'ship_tender'
   ];
   var MAX_SCIENTISTS = [0, 8, 12, 16, 22, 28, 35, 43, 51, 60, 69, 79, 89, 100, 111, 122, 134, 146, 159, 172, 185, 198, 212, 227, 241, 256, 271, 287, 302, 318, 335, 351, 368];
+  var RESEARCH_TYPES = ['economy', 'knowledge', 'seafaring', 'military'];
 
   function asNumber(value, fallback) {
     var number = parseInt(value, 10);
@@ -641,6 +644,36 @@
     return null;
   }
 
+  function readNewJsParams(item) {
+    if (!item || !Array.isArray(item)) return null;
+
+    function inspect(value) {
+      if (!value || typeof value !== 'object') return null;
+      if (value.viewScriptParams) return value.viewScriptParams;
+      if (value.new_js_params) {
+        try {
+          return typeof value.new_js_params === 'string' ? JSON.parse(value.new_js_params) : value.new_js_params;
+        } catch (_err) {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    for (var i = 0; i < item.length; i++) {
+      var direct = inspect(item[i]);
+      if (direct) return direct;
+      if (Array.isArray(item[i])) {
+        for (var j = 0; j < item[i].length; j++) {
+          var nested = inspect(item[i][j]);
+          if (nested) return nested;
+        }
+      }
+    }
+
+    return null;
+  }
+
   function readChangeViewHtml(item) {
     if (!item || item[0] !== 'changeView' || !Array.isArray(item[1])) return null;
 
@@ -651,6 +684,137 @@
     }
 
     return null;
+  }
+
+  function looksLikeHtml(value) {
+    return typeof value === 'string'
+      && value.indexOf('<') !== -1
+      && /<\s*(div|ul|ol|table|form|input|span|section|script)\b/i.test(value);
+  }
+
+  function collectHtmlStrings(value, output, depth) {
+    if (depth > 6 || value === null || typeof value === 'undefined') return;
+
+    if (looksLikeHtml(value)) {
+      if (output.indexOf(value) === -1) output.push(value);
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach(function(item) {
+        collectHtmlStrings(item, output, depth + 1);
+      });
+      return;
+    }
+
+    if (typeof value === 'object') {
+      Object.keys(value).forEach(function(key) {
+        collectHtmlStrings(value[key], output, depth + 1);
+      });
+    }
+  }
+
+  function readAjaxHtmlStrings(item) {
+    var output = [];
+    var changeViewHtml = readChangeViewHtml(item);
+    if (changeViewHtml) output.push(changeViewHtml);
+    collectHtmlStrings(item, output, 0);
+    return output;
+  }
+
+  function cleanText(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function normalizeResearchCategory(type, source) {
+    var items = [];
+    var current = null;
+    var available = 0;
+    var completed = 0;
+
+    if (source && typeof source === 'object') {
+      Object.keys(source).forEach(function(label) {
+        var entry = source[label];
+        if (!entry || typeof entry !== 'object') return;
+        var href = String(entry.aHref || entry.href || entry.url || '');
+        var idMatch = href.match(/(\d+)(?:\D*)$/);
+        var state = String(entry.liClass || entry.className || entry.state || '').toLowerCase();
+        var rawName = cleanText(entry.name || entry.title || label);
+        var futureMatch = rawName.match(/\((\d+)\)/);
+        var item = {
+          id: idMatch ? parseInt(idMatch[1], 10) : null,
+          name: rawName.replace(/\s*\(\d+\)\s*$/, ''),
+          state: state.indexOf('explored') > -1 ? 'completed' : (state.indexOf('explorable') > -1 ? 'available' : 'locked'),
+          futureLevel: futureMatch ? Math.max(0, parseInt(futureMatch[1], 10) - 1) : null
+        };
+        if (item.state === 'completed') completed += 1;
+        if (item.state === 'available') available += 1;
+        if (!current && item.state === 'available') current = item;
+        items.push(item);
+      });
+    }
+
+    return {
+      type: type,
+      label: type.charAt(0).toUpperCase() + type.slice(1),
+      current: current,
+      available: available,
+      completed: completed,
+      total: items.length,
+      items: items
+    };
+  }
+
+  function cacheResearchCategory(type, source) {
+    if (RESEARCH_TYPES.indexOf(type) === -1) return;
+    var cache = researchCache || { updatedAt: Date.now(), categories: {}, currentType: null };
+    cache.categories = cache.categories || {};
+    cache.categories[type] = normalizeResearchCategory(type, source);
+    cache.currentType = type;
+    cache.updatedAt = Date.now();
+    cache.lastError = null;
+    researchCache = cache;
+    scanState.revision += 1;
+  }
+
+  function cacheResearchFromParams(params) {
+    if (!params || typeof params !== 'object') return;
+    var type = params.researchType || params.currentResearchType || params.currResearchCategory;
+    var data = params.currResearchType || params.researches || params.research || params.items;
+    if (!type && data && typeof data === 'object') {
+      RESEARCH_TYPES.forEach(function(candidate) {
+        if (data[candidate]) cacheResearchCategory(candidate, data[candidate]);
+      });
+      return;
+    }
+    if (type && data) cacheResearchCategory(String(type), data);
+  }
+
+  function cacheResearchFromHtml(html, fallbackType) {
+    if (!html || typeof DOMParser === 'undefined') return;
+    var doc;
+    try {
+      doc = new DOMParser().parseFromString(html, 'text/html');
+    } catch (_err) {
+      return;
+    }
+
+    var type = fallbackType || RESEARCH_TYPES.find(function(candidate) {
+      return Boolean(doc.querySelector('[href*="researchType=' + candidate + '"], .research_' + candidate + ', #' + candidate));
+    }) || null;
+    if (!type) return;
+
+    var source = {};
+    Array.prototype.forEach.call(doc.querySelectorAll('li, tr, .researchItem, [class*="research"]'), function(node, index) {
+      var text = cleanText(node.textContent);
+      if (!text || text.length < 3) return;
+      source[text.slice(0, 80) + ':' + index] = {
+        name: text,
+        aHref: node.querySelector('a[href]') && node.querySelector('a[href]').href,
+        liClass: node.className || ''
+      };
+    });
+    if (Object.keys(source).length) cacheResearchCategory(type, source);
   }
 
   function maybeSendMilitaryAdvisorHtml(html) {
@@ -849,14 +1013,25 @@
       var params = readChangeViewScriptParams(item);
       if (params) {
         cacheFromViewScriptParams(params, fallbackCityId);
+        cacheResearchFromParams(params);
+      }
+
+      var newParams = readNewJsParams(item);
+      if (newParams) {
+        cacheResearchFromParams(newParams);
       }
 
       var html = readChangeViewHtml(item);
       if (html) {
         cacheFromCityMilitaryHtml(html, fallbackCityId);
         cacheFromTownHallHtml(html, fallbackCityId);
+        cacheResearchFromHtml(html, null);
         maybeSendMilitaryAdvisorHtml(html);
       }
+
+      readAjaxHtmlStrings(item).forEach(function(fragment) {
+        cacheResearchFromHtml(fragment, null);
+      });
     });
   }
 
@@ -1064,6 +1239,32 @@
     processAjaxResponse(response, selectedCityId);
   }
 
+  async function fetchResearchAdvisor(force) {
+    if (!force && researchCache && researchCache.updatedAt && Date.now() - researchCache.updatedAt < RESEARCH_CACHE_TTL) return;
+
+    for (var i = 0; i < RESEARCH_TYPES.length; i++) {
+      var type = RESEARCH_TYPES[i];
+      try {
+        var response = await ikariamFetch({
+          view: 'noViewChange',
+          researchType: type,
+          templateView: 'researchAdvisor'
+        });
+        processAjaxResponse(response, null);
+        extractAjaxItems(response).forEach(function(item) {
+          var params = readNewJsParams(item) || readChangeViewScriptParams(item);
+          if (params && params.currResearchType) cacheResearchCategory(type, params.currResearchType);
+        });
+        cacheResearchFromHtml(response, type);
+      } catch (error) {
+        researchCache = mergeObject(researchCache || { categories: {} }, {
+          updatedAt: Date.now(),
+          lastError: String(error && error.message ? error.message : error)
+        });
+      }
+    }
+  }
+
   async function scanAllCities(force) {
     if (scanState.inProgress) {
       scanState.requested = true;
@@ -1139,6 +1340,7 @@
           accountGold: accountGold,
           selectedCityId: parsed.selectedCityId,
           cities: parsed.cities,
+          research: researchCache,
           debug: {
             source: 'ikariam.model',
             cityCount: parsed.cities.length,
@@ -1174,6 +1376,19 @@
     if (!event.data || event.data.__ikakit !== 'requestMilitaryAdvisorScan') return;
 
     fetchMilitaryAdvisor().catch(function() {});
+  });
+
+  window.addEventListener('message', function(event) {
+    if (event.source !== window) return;
+    if (!event.data || event.data.__ikakit !== 'requestResearchScan') return;
+
+    fetchResearchAdvisor(Boolean(event.data.force)).then(send).catch(function(error) {
+      researchCache = mergeObject(researchCache || { categories: {} }, {
+        updatedAt: Date.now(),
+        lastError: String(error && error.message ? error.message : error)
+      });
+      send();
+    });
   });
 
   window.addEventListener('message', function(event) {

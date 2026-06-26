@@ -1,5 +1,5 @@
 // IkaKit — Empire Manager
-// Modal overlay với 4 tab: Resources | Buildings | Military | Espionage
+// Modal overlay với 5 tab: Resources | Buildings | Research | Military | Espionage
 // Inject button vào left menu của game, lưu tab active vào storage.
 
 import storage  from '../../helpers/storage.js';
@@ -7,10 +7,11 @@ import gameData from '../../helpers/gameData.js';
 
 const STORAGE_KEY = 'ika_empire_active_tab';
 
-const TABS = ['resources', 'buildings', 'military', 'espionage'];
+const TABS = ['resources', 'buildings', 'research', 'military', 'espionage'];
 const TAB_LABELS = {
   resources: 'Resources',
   buildings: 'Buildings',
+  research:  'Research',
   military:  'Military',
   espionage: 'Espionage',
 };
@@ -268,6 +269,7 @@ function _buildModal() {
   refresh.textContent = 'Reload';
   refresh.addEventListener('click', () => {
     gameData.requestCityScan(true);
+    gameData.requestResearchScan(true);
     _updateScanStatus({
       ...(gameData.get() ?? {}),
       debug: {
@@ -331,6 +333,7 @@ async function _open() {
   }
   document.addEventListener('keydown', _onKeyDown);
   gameData.requestCityScan();
+  gameData.requestResearchScan();
   _updateScanStatus();
   _unsubscribeScanStatus = gameData.onChange((data) => _updateScanStatus(data));
 
@@ -357,6 +360,9 @@ async function _switchTab(tab) {
   content.replaceChildren(_createLoading());
 
   _activeTab = tab;
+  if (tab === 'research') {
+    gameData.requestResearchScan();
+  }
   storage.set(STORAGE_KEY, tab).catch((error) => {
     console.warn('[IkaKit] Không lưu được active empire tab:', error);
   });

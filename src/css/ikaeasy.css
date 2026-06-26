@@ -1534,6 +1534,120 @@
   font-size: 10px;
 }
 
+.ika-research {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ika-research-summary,
+.ika-research-card {
+  border: 1px solid var(--ika-border);
+  background: var(--ika-row);
+}
+
+.ika-research-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px;
+}
+
+.ika-research-status {
+  color: var(--ika-ink-soft);
+  font-weight: 700;
+}
+
+.ika-research-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.ika-research-stat {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 82px;
+  padding: 3px 6px;
+  background: var(--ika-paper-strong);
+  border: 1px solid var(--ika-border);
+}
+
+.ika-research-stat strong {
+  color: var(--ika-accent-dark);
+  font-size: 11px;
+}
+
+.ika-research-action {
+  min-height: 20px;
+  padding: 3px 8px;
+  color: var(--ika-accent-dark);
+  background: #fff2c7;
+  border: 1px solid var(--ika-border);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ika-research-action:hover,
+.ika-research-action:focus {
+  background: #fff0bf;
+  outline: none;
+}
+
+.ika-research-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 7px;
+}
+
+.ika-research-card {
+  padding: 7px;
+}
+
+.ika-research-card h3 {
+  margin: 0 0 4px;
+  color: var(--ika-accent-dark);
+  font-size: 11px;
+}
+
+.ika-research-meta,
+.ika-research-current {
+  margin-bottom: 4px;
+  color: var(--ika-ink-soft);
+}
+
+.ika-research-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.ika-research-item {
+  max-width: 100%;
+  padding: 2px 5px;
+  overflow: hidden;
+  background: var(--ika-paper-muted);
+  border: 1px solid rgba(154, 107, 47, 0.38);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ika-research-item-completed {
+  color: var(--ika-green);
+}
+
+.ika-research-item-available {
+  color: var(--ika-accent-dark);
+  font-weight: 700;
+}
+
+.ika-research-city-table {
+  min-width: 760px;
+}
+
 @media (max-width: 640px) {
   .ika-modal {
     padding: 16px 8px;

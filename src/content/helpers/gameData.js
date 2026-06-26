@@ -39,6 +39,7 @@ function _notify() {
     scan.fetched ?? 0,
     scan.total ?? 0,
     scan.revision ?? 0,
+    _data?.research?.updatedAt ?? 0,
   ].join(':');
 
   if (notifyKey === _lastNotifyKey) return;
@@ -144,6 +145,7 @@ function _mergeCachedPayload(livePayload, cachedPayload) {
     ...cachedPayload,
     ...livePayload,
     cities: mergedCities,
+    research: _mergeObject(livePayload.research, cachedPayload.research),
     debug: {
       ...(cachedPayload.debug ?? {}),
       ...(livePayload.debug ?? {}),
@@ -220,6 +222,10 @@ const gameData = {
 
   requestCityScan(force = false) {
     window.postMessage({ __ikakit: 'requestCityScan', force: Boolean(force) }, '*');
+  },
+
+  requestResearchScan(force = false) {
+    window.postMessage({ __ikakit: 'requestResearchScan', force: Boolean(force) }, '*');
   },
 
   openGameView(params) {
