@@ -61,3 +61,12 @@ initialize automation modules.
   `notificationAlertTest`, and `clearMilitaryAlertTests`.
 - Background, entrypoint, and manifests contain no Automation Center, auto-send,
   route schedule, construction, or IkaLabs references.
+
+## Phase 3 Military Alerts Dependencies
+
+- Keep the Military Alerts DOM/advisor parser and incoming hostile behavior.
+- Add local Military Alerts settings constants in the module instead of importing
+  the IkaLabs settings panel.
+- Use the minimal game event emitter helper, not the Game Event Monitor UI.
+- Rename any reused `automation-*` panel classes to notification/alerts classes
+  in IkaKit.
