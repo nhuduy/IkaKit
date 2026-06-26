@@ -70,3 +70,11 @@ initialize automation modules.
 - Use the minimal game event emitter helper, not the Game Event Monitor UI.
 - Rename any reused `automation-*` panel classes to notification/alerts classes
   in IkaKit.
+
+## Phase 3 Verification
+
+- `npm run build:chrome` passed.
+- `npm run build:firefox` passed.
+- Military Alerts initializes without Automation Center or settings panel imports.
+- Military Alerts, helpers, background, manifests, and alert CSS contain no
+  IkaLabs or automation module references.
