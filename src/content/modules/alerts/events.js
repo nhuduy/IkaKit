@@ -1,12 +1,13 @@
 // IkaKit - Compact Events tab for the Alerts panel.
 
 import gameEvents from '../../helpers/gameEvents.js';
+import { t } from '../../../shared/i18n/index.js';
 
 const FILTERS = Object.freeze([
-  { id: 'all', label: 'All' },
-  { id: 'military', label: 'Military' },
-  { id: 'townNews', label: 'Town News' },
-  { id: 'game', label: 'Game' },
+  { id: 'all', labelKey: 'events.filter.all' },
+  { id: 'military', labelKey: 'events.filter.military' },
+  { id: 'townNews', labelKey: 'events.filter.townNews' },
+  { id: 'game', labelKey: 'events.filter.game' },
 ]);
 
 let activeFilter = 'all';
@@ -28,19 +29,20 @@ function bucketForEvent(event) {
 }
 
 function bucketLabel(bucket) {
-  return FILTERS.find((filter) => filter.id === bucket)?.label || 'Game';
+  const labelKey = FILTERS.find((filter) => filter.id === bucket)?.labelKey || 'events.filter.game';
+  return t(labelKey);
 }
 
 function formatTime(timestamp) {
   const value = Number(timestamp);
-  if (!Number.isFinite(value) || value <= 0) return 'Unknown';
+  if (!Number.isFinite(value) || value <= 0) return t('events.time.unknown');
   return new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 function formatEventTime(event) {
   const observed = formatTime(event.observedAt);
   const expires = formatTime(event.expiresAt);
-  return `Seen ${observed} · active until ${expires}`;
+  return t('events.time.seenActiveUntil', { seen: observed, expires });
 }
 
 function createButton(label, className, onClick) {
@@ -82,9 +84,13 @@ async function writeClipboard(text) {
 async function copyEvents() {
   try {
     await writeClipboard(JSON.stringify(gameEvents.toJSON(), null, 2));
-    copyStatus = `Copied ${gameEvents.getActiveEvents().length} event${gameEvents.getActiveEvents().length === 1 ? '' : 's'}.`;
+    const count = gameEvents.getActiveEvents().length;
+    copyStatus = t('events.copy.copied', {
+      count,
+      eventLabel: t(count === 1 ? 'events.copy.eventSingular' : 'events.copy.eventPlural'),
+    });
   } catch (error) {
-    copyStatus = `Copy failed: ${String(error?.message || error)}`;
+    copyStatus = t('events.copy.failed', { error: String(error?.message || error) });
   }
 
   scheduleRender();
@@ -92,7 +98,7 @@ async function copyEvents() {
 
 function clearEvents() {
   gameEvents.clear();
-  copyStatus = 'Events cleared.';
+  copyStatus = t('events.clear.done');
   scheduleRender();
 }
 
@@ -116,7 +122,7 @@ function renderFilters() {
   filters.className = 'ika-game-event-filters';
 
   FILTERS.forEach((filter) => {
-    const button = createButton(filter.label, 'ika-game-event-filter', () => {
+    const button = createButton(t(filter.labelKey), 'ika-game-event-filter', () => {
       activeFilter = filter.id;
       scheduleRender();
     });
@@ -137,7 +143,7 @@ function renderEventRow(event) {
 
   row.className = `ika-game-event-row ika-game-event-${event.severity || 'info'}`;
   meta.className = 'ika-game-event-meta';
-  title.textContent = event.title || event.type || 'Game Event';
+  title.textContent = event.title || event.type || t('events.defaultTitle');
   badge.className = 'ika-game-event-badge';
   badge.textContent = event.severity || 'info';
   message.className = 'ika-game-event-message';
@@ -157,7 +163,7 @@ function renderEventGroups(events) {
   if (!events.length) {
     const empty = document.createElement('div');
     empty.className = 'ika-game-event-empty';
-    empty.textContent = 'No active events.';
+    empty.textContent = t('events.empty');
     body.appendChild(empty);
     return body;
   }
@@ -195,15 +201,15 @@ function renderPanel(container) {
 
   panel.className = 'ika-game-event-panel ika-game-event-panel-embedded';
   header.className = 'ika-game-event-header';
-  title.textContent = 'Events';
-  meta.textContent = `${events.length} active`;
+  title.textContent = t('alerts.tab.events');
+  meta.textContent = t('events.active', { count: events.length });
   header.append(title, meta);
 
   actions.className = 'ika-game-event-actions';
   actions.append(
-    createButton('Refresh', 'ika-game-event-button', scheduleRender),
-    createButton('Copy', 'ika-game-event-button', copyEvents),
-    createButton('Clear', 'ika-game-event-button', clearEvents),
+    createButton(t('events.action.refresh'), 'ika-game-event-button', scheduleRender),
+    createButton(t('events.action.copy'), 'ika-game-event-button', copyEvents),
+    createButton(t('events.action.clear'), 'ika-game-event-button', clearEvents),
   );
 
   filtersHost.className = 'ika-game-event-filters-host';
@@ -227,7 +233,10 @@ const alertEvents = Object.freeze({
   getStatus() {
     return {
       title: 'Events',
-      message: `${gameEvents.getActiveEvents().length} active event${gameEvents.getActiveEvents().length === 1 ? '' : 's'}.`,
+      message: t('events.status.activeEvents', {
+        count: gameEvents.getActiveEvents().length,
+        eventLabel: t(gameEvents.getActiveEvents().length === 1 ? 'events.copy.eventSingular' : 'events.copy.eventPlural'),
+      }),
     };
   },
 });

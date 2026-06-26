@@ -5,20 +5,35 @@ import { getRuntimeUrl } from '../../helpers/runtime.js';
 import militaryAlerts from '../militaryAlerts/index.js';
 import notificationAlerts from '../notificationAlerts/index.js';
 import alertEvents from './events.js';
+import { onLanguageChange, t } from '../../../shared/i18n/index.js';
 
 const STORAGE_KEY = 'ika_alerts_active_tab';
 const POSITION_STORAGE_KEY = 'ika_alerts_position';
 const BUTTON_ID = 'ika-alerts-btn';
 
 const TABS = Object.freeze([
-  { id: 'military', label: 'Military Alerts', module: militaryAlerts },
-  { id: 'townNews', label: 'Town News', module: notificationAlerts },
-  { id: 'events', label: 'Events', module: alertEvents },
+  { id: 'military', labelKey: 'alerts.tab.military', module: militaryAlerts },
+  { id: 'townNews', labelKey: 'alerts.tab.townNews', module: notificationAlerts },
+  { id: 'events', labelKey: 'alerts.tab.events', module: alertEvents },
 ]);
 
 let modal = null;
 let activeTab = 'military';
 let modalPosition = null;
+let unsubscribeLanguage = null;
+
+function updateInjectedButtonLabel() {
+  const button = document.getElementById(BUTTON_ID);
+  if (!button) return;
+
+  if (button.matches('button')) {
+    button.textContent = t('alerts.button');
+  } else {
+    button.title = t('alerts.title');
+    const label = button.querySelector('.ika-alerts-label');
+    if (label) label.textContent = t('alerts.button');
+  }
+}
 
 function normalizePosition(value) {
   if (!value || typeof value !== 'object') return null;
@@ -122,7 +137,7 @@ function createFallbackButton() {
   button.id = BUTTON_ID;
   button.className = 'ika-empire-fab ika-alerts-fab';
   button.type = 'button';
-  button.textContent = 'Alerts';
+  button.textContent = t('alerts.button');
   button.addEventListener('click', () => alerts.toggle());
   document.body.appendChild(button);
 }
@@ -153,7 +168,7 @@ function createMenuButton() {
   const item = document.createElement('li');
   item.id = BUTTON_ID;
   item.className = 'slot ika-alerts-btn';
-  item.title = 'Alerts';
+  item.title = t('alerts.title');
 
   const icon = document.createElement('div');
   icon.className = 'image ika-alerts-icon';
@@ -162,7 +177,7 @@ function createMenuButton() {
   const labelText = document.createElement('span');
   label.className = 'name';
   labelText.className = 'namebox ika-alerts-label';
-  labelText.textContent = 'Alerts';
+  labelText.textContent = t('alerts.button');
 
   label.appendChild(labelText);
   item.append(icon, label);
@@ -217,14 +232,14 @@ function renderActiveTab() {
       const status = tab.module?.getStatus?.();
       const empty = document.createElement('div');
       empty.className = 'ika-alerts-empty';
-      empty.textContent = status?.message || 'This alert panel is not available.';
+      empty.textContent = status?.message || t('alerts.panelUnavailable');
       content.appendChild(empty);
     }
   } catch (error) {
     console.warn('[IkaKit] Alerts panel render failed:', error);
     const message = document.createElement('div');
     message.className = 'ika-alerts-empty';
-    message.textContent = 'This alert panel could not be rendered.';
+    message.textContent = t('alerts.renderFailed');
     content.appendChild(message);
   }
 }
@@ -255,11 +270,11 @@ function buildModal() {
   header.className = 'ika-modal-header';
   const title = document.createElement('span');
   title.className = 'ika-modal-title';
-  title.textContent = 'Alerts';
+  title.textContent = t('alerts.title');
   const close = document.createElement('button');
   close.className = 'ika-modal-close';
   close.type = 'button';
-  close.title = 'Close';
+  close.title = t('common.close');
   close.textContent = '×';
   close.addEventListener('click', () => alerts.close());
   header.append(title, close);
@@ -271,7 +286,7 @@ function buildModal() {
     button.className = 'ika-alerts-tab';
     button.type = 'button';
     button.dataset.tab = tab.id;
-    button.textContent = tab.label;
+    button.textContent = t(tab.labelKey);
     button.addEventListener('click', () => setActiveTab(tab.id));
     tabs.appendChild(button);
   });
@@ -303,6 +318,17 @@ const alerts = Object.freeze({
     storage.get(POSITION_STORAGE_KEY).then((position) => {
       modalPosition = normalizePosition(position);
     }).catch(() => {});
+    if (!unsubscribeLanguage) {
+      unsubscribeLanguage = onLanguageChange(() => {
+        updateInjectedButtonLabel();
+        if (!modal || !document.body.contains(modal)) return;
+        const wasOpen = modal.classList.contains('ika-modal-open');
+        modal.remove();
+        modal = buildModal();
+        if (wasOpen) modal.classList.add('ika-modal-open');
+        renderActiveTab();
+      });
+    }
     window.addEventListener('resize', keepModalInViewport);
   },
 
