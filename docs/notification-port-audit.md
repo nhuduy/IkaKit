@@ -86,3 +86,12 @@ initialize automation modules.
 - Expose an independent module API: `init`, `renderPanel`, and `getStatus`.
 - Remove Automation Center render hooks and rename automation-specific state or
   classes to Alerts panel equivalents.
+
+## Phase 4 Verification
+
+- `npm run build:chrome` passed.
+- `npm run build:firefox` passed.
+- Town News Notification Alert has dedupe via `seenKeys`, caps recent alerts at
+  `MAX_RECENT`, and routes test notifications through `notificationAlertTest`.
+- Town News mutation scanning ignores IkaKit alert UI mutations and contains no
+  IkaLabs or automation module references.
