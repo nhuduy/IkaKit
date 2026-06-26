@@ -4,6 +4,7 @@
 import gameEvents from '../../helpers/gameEvents.js';
 import storage from '../../helpers/storage.js';
 import { getExtensionApi } from '../../helpers/runtime.js';
+import { onLanguageChange, t } from '../../../shared/i18n/index.js';
 
 const MILITARY_SETTINGS_KEY = 'ika_military_alert_settings';
 const DEFAULT_MILITARY_SETTINGS = Object.freeze({
@@ -70,6 +71,7 @@ let observer = null;
 let alertPanel = null;
 let panelContainer = null;
 let alertSettings = DEFAULT_MILITARY_SETTINGS;
+let unsubscribeLanguage = null;
 const seenEvents = new Map();
 
 function normalizeSettings(value) {
@@ -258,30 +260,30 @@ function classifySeverity(type, arrivalAt) {
 
 function severityLabel(severity) {
   const labels = {
-    critical: 'Khẩn cấp',
-    high: 'Nguy hiểm',
-    medium: 'Cần để ý',
-    low: 'Theo dõi',
+    critical: 'militaryAlerts.severity.critical',
+    high: 'militaryAlerts.severity.high',
+    medium: 'militaryAlerts.severity.medium',
+    low: 'militaryAlerts.severity.low',
   };
 
-  return labels[severity] ?? labels.low;
+  return t(labels[severity] ?? labels.low);
 }
 
 function typeLabel(type) {
   const labels = {
-    attack: 'Tấn công',
-    blockade: 'Phong tỏa',
-    occupation: 'Chiếm đóng',
+    attack: 'militaryAlerts.type.attack',
+    blockade: 'militaryAlerts.type.blockade',
+    occupation: 'militaryAlerts.type.occupation',
   };
 
-  return labels[type] ?? 'Quân sự';
+  return t(labels[type] ?? 'militaryAlerts.type.default');
 }
 
 function formatTimeLeft(arrivalAt) {
   const remainingMs = Number(arrivalAt) - Date.now();
 
   if (!Number.isFinite(remainingMs) || remainingMs <= 0) {
-    return 'đang tới nơi';
+    return t('militaryAlerts.time.arriving');
   }
 
   const minutes = Math.max(1, Math.ceil(remainingMs / 60000));
@@ -397,8 +399,8 @@ function signature(events) {
 }
 
 function toGameEvent(event) {
-  const target = event.target || 'Thành của bạn';
-  const origin = event.origin || 'không rõ nguồn';
+  const target = event.target || t('militaryAlerts.route.defaultTarget');
+  const origin = event.origin || t('militaryAlerts.route.unknownOrigin');
 
   return {
     id: `military:${event.id}`,
@@ -406,7 +408,7 @@ function toGameEvent(event) {
     category: 'military',
     severity: event.severity,
     title: typeLabel(event.type),
-    message: `${target} từ ${origin}, còn ${formatTimeLeft(event.arrivalAt)}.`,
+    message: t('militaryAlerts.event.message', { target, origin, timeLeft: formatTimeLeft(event.arrivalAt) }),
     payload: {
       militaryEvent: event,
     },
@@ -482,11 +484,11 @@ function createAlertPanel() {
 
   head.className = 'ika-military-alert-head';
   title.className = 'ika-military-alert-title';
-  title.textContent = 'Military Alerts';
+  title.textContent = t('militaryAlerts.title');
 
   closeButton.className = 'ika-military-alert-close';
   closeButton.type = 'button';
-  closeButton.setAttribute('aria-label', 'Ẩn Military Alerts');
+  closeButton.setAttribute('aria-label', t('militaryAlerts.hide'));
   closeButton.textContent = '×';
 
   body.className = 'ika-military-alert-body';
@@ -540,8 +542,8 @@ function renderAlertPanel() {
     const row = document.createElement('article');
     const meta = document.createElement('div');
     const route = document.createElement('div');
-    const target = event.target || 'Thành của bạn';
-    const origin = event.origin || 'không rõ nguồn';
+    const target = event.target || t('militaryAlerts.route.defaultTarget');
+    const origin = event.origin || t('militaryAlerts.route.unknownOrigin');
 
     row.className = `ika-military-alert-row ika-military-alert-${event.severity}`;
 
@@ -555,7 +557,7 @@ function renderAlertPanel() {
     route.className = 'ika-military-alert-route';
     route.append(
       createTextElement('span', '', target),
-      createTextElement('small', '', `từ ${origin}`),
+      createTextElement('small', '', t('militaryAlerts.route.from', { origin })),
     );
 
     row.append(meta, route);
@@ -567,10 +569,15 @@ function renderAlertPanel() {
 function getStatus() {
   const events = getActiveEvents();
   return {
-    title: 'Military Alerts',
+    title: t('militaryAlerts.title'),
     message: alertSettings.enabled
-      ? (events.length ? `${events.length} incoming hostile event${events.length === 1 ? '' : 's'}.` : 'Monitoring incoming hostile movements.')
-      : 'Military alerts are disabled.',
+      ? (events.length
+        ? t('militaryAlerts.status.incoming', {
+          count: events.length,
+          eventLabel: t(events.length === 1 ? 'militaryAlerts.status.eventSingular' : 'militaryAlerts.status.eventPlural'),
+        })
+        : t('militaryAlerts.status.monitoring'))
+      : t('militaryAlerts.status.disabled'),
   };
 }
 
@@ -615,21 +622,21 @@ function renderSettingsControls(container) {
   };
 
   controls.append(
-    createSettingsCheckbox('Enable Military Alerts', settings.enabled, (checked) => update({ enabled: checked })),
-    createSettingsCheckbox('Show in-game panel', settings.panel, (checked) => update({ panel: checked })),
-    createSettingsCheckbox('Desktop notifications', settings.notifications, (checked) => update({ notifications: checked })),
-    createSettingsCheckbox('Extension badge count', settings.badge, (checked) => update({ badge: checked })),
+    createSettingsCheckbox(t('militaryAlerts.setting.enable'), settings.enabled, (checked) => update({ enabled: checked })),
+    createSettingsCheckbox(t('militaryAlerts.setting.panel'), settings.panel, (checked) => update({ panel: checked })),
+    createSettingsCheckbox(t('militaryAlerts.setting.notifications'), settings.notifications, (checked) => update({ notifications: checked })),
+    createSettingsCheckbox(t('militaryAlerts.setting.badge'), settings.badge, (checked) => update({ badge: checked })),
   );
 
   const reminders = document.createElement('fieldset');
   reminders.className = 'ika-alerts-reminders';
   const legend = document.createElement('legend');
-  legend.textContent = 'Reminders';
+  legend.textContent = t('militaryAlerts.reminders');
   reminders.append(
     legend,
-    createSettingsCheckbox('15 minutes before arrival', settings.reminders[15], (checked) => update({ reminders: { 15: checked } })),
-    createSettingsCheckbox('5 minutes before arrival', settings.reminders[5], (checked) => update({ reminders: { 5: checked } })),
-    createSettingsCheckbox('1 minute before arrival', settings.reminders[1], (checked) => update({ reminders: { 1: checked } })),
+    createSettingsCheckbox(t('militaryAlerts.reminder.15'), settings.reminders[15], (checked) => update({ reminders: { 15: checked } })),
+    createSettingsCheckbox(t('militaryAlerts.reminder.5'), settings.reminders[5], (checked) => update({ reminders: { 5: checked } })),
+    createSettingsCheckbox(t('militaryAlerts.reminder.1'), settings.reminders[1], (checked) => update({ reminders: { 1: checked } })),
   );
 
   return [controls, reminders];
@@ -643,7 +650,7 @@ function renderPanel(container) {
   const status = document.createElement('div');
   status.className = 'ika-alerts-status-card';
   const title = document.createElement('strong');
-  title.textContent = 'Military Alerts';
+  title.textContent = t('militaryAlerts.title');
   const message = document.createElement('span');
   message.textContent = getStatus().message;
   status.append(title, message);
@@ -653,7 +660,7 @@ function renderPanel(container) {
   const scan = document.createElement('button');
   scan.type = 'button';
   scan.className = 'ika-alerts-button';
-  scan.textContent = 'Scan now';
+  scan.textContent = t('militaryAlerts.action.scan');
   scan.addEventListener('click', () => {
     requestAdvisorScan();
     scheduleScan();
@@ -668,7 +675,7 @@ function renderPanel(container) {
   if (!events.length) {
     const empty = document.createElement('div');
     empty.className = 'ika-alerts-empty';
-    empty.textContent = 'No incoming hostile movements.';
+    empty.textContent = t('militaryAlerts.empty');
     list.appendChild(empty);
   } else {
     events.slice(0, 8).forEach((event) => {
@@ -676,7 +683,7 @@ function renderPanel(container) {
       row.className = `ika-military-alert-row ika-military-alert-${event.severity}`;
       row.append(
         createTextElement('div', 'ika-military-alert-meta', `${severityLabel(event.severity)} · ${typeLabel(event.type)} · ${formatTimeLeft(event.arrivalAt)}`),
-        createTextElement('div', 'ika-military-alert-route', `${event.target || 'Thành của bạn'} từ ${event.origin || 'không rõ nguồn'}`),
+        createTextElement('div', 'ika-military-alert-route', `${event.target || t('militaryAlerts.route.defaultTarget')} ${t('militaryAlerts.route.from', { origin: event.origin || t('militaryAlerts.route.unknownOrigin') })}`),
       );
       list.appendChild(row);
     });
@@ -738,6 +745,12 @@ const militaryAlerts = Object.freeze({
       .then(renderAlertPanel)
       .catch((error) => console.warn('[IkaKit] Không load được Military Alerts settings:', error));
     getExtensionApi()?.storage?.onChanged?.addListener(handleSettingsChange);
+    if (!unsubscribeLanguage) {
+      unsubscribeLanguage = onLanguageChange(() => {
+        renderAlertPanel();
+        if (panelContainer?.isConnected) renderPanel(panelContainer);
+      });
+    }
 
     window.addEventListener('message', (event) => {
       if (event.source !== window) return;
