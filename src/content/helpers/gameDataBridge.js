@@ -259,6 +259,42 @@
     return Object.keys(resources).length ? resources : null;
   }
 
+  function normalizeMaxResources(source) {
+    return normalizeResources(source);
+  }
+
+  function normalizeProduction(source) {
+    if (!source || typeof source !== 'object') return null;
+
+    var production = {};
+    Object.keys(RESOURCE_KEYS).forEach(function(key) {
+      if (!own(source, key)) return;
+      production[RESOURCE_KEYS[key]] = asNumber(source[key], 0);
+    });
+
+    if (own(source, 'wineSpendings')) production.wineSpendings = asNumber(source.wineSpendings, 0);
+    if (own(source, 'wineSpending')) production.wineSpendings = asNumber(source.wineSpending, 0);
+
+    return Object.keys(production).length ? production : null;
+  }
+
+  function productionFromHeaderData(source) {
+    if (!source || typeof source !== 'object') return null;
+
+    var production = {};
+    var woodPerSecond = optionalNumber(source.resourceProduction);
+    var tradegoodPerSecond = optionalNumber(source.tradegoodProduction);
+    var producedTradegood = firstDefined(source.producedTradegood, source.tradegood, source.tradeGood, source.islandResource);
+    var islandResource = RESOURCE_KEYS[producedTradegood] || RESOURCE_KEYS[String(producedTradegood || '').toLowerCase()];
+    var wineSpendings = firstNumber(source.wineSpendings, source.wineSpending);
+
+    if (woodPerSecond !== null) production.wood = Math.floor(woodPerSecond * 3600);
+    if (tradegoodPerSecond !== null && islandResource) production[islandResource] = Math.floor(tradegoodPerSecond * 3600);
+    if (wineSpendings !== null) production.wineSpendings = wineSpendings;
+
+    return Object.keys(production).length ? production : null;
+  }
+
   function normalizeCityStats(source) {
     if (!source || typeof source !== 'object') return null;
 
@@ -470,10 +506,17 @@
     var resources = normalizeResources(source.resources)
       || normalizeResources(source.currentResources)
       || normalizeResources(source);
+    var maxResources = normalizeMaxResources(source.maxResources)
+      || normalizeMaxResources(source.resourceCapacity)
+      || normalizeMaxResources(source.storageCapacity);
+    var production = normalizeProduction(source.production)
+      || productionFromHeaderData(source);
     var buildings = normalizeBuildings(source);
     var military = normalizeMilitary(source);
 
     if (resources) city.resources = resources;
+    if (maxResources) city.maxResources = maxResources;
+    if (production) city.production = production;
     if (buildings) city.buildings = buildings;
     if (military) city.military = military;
     mergeObject(city, normalizeCityStats(source));
@@ -502,6 +545,8 @@
     });
 
     if (cached.resources) city.resources = mergeObject(city.resources || {}, cached.resources);
+    if (cached.maxResources) city.maxResources = mergeObject(city.maxResources || {}, cached.maxResources);
+    if (cached.production) city.production = mergeObject(city.production || {}, cached.production);
     if (cached.buildings) city.buildings = mergeObject(city.buildings || {}, cached.buildings);
     if (cached.military) city.military = mergeObject(city.military || {}, cached.military);
     [
@@ -512,7 +557,9 @@
       'maxInhabitants',
       'maxScientists',
       'corruption',
-      'research'
+      'research',
+      'storageCapacity',
+      'resourceSafe'
     ].forEach(function(key) {
       if (cached[key] !== null && typeof cached[key] !== 'undefined') {
         city[key] = cached[key];
@@ -528,10 +575,22 @@
     if (!Number.isFinite(id) || !patch || typeof patch !== 'object') return;
 
     var existing = cityCache[id] || { id: id };
-    mergeObject(existing, patch);
+
+    Object.keys(patch).forEach(function(key) {
+      if (['resources', 'maxResources', 'production', 'buildings', 'military'].indexOf(key) !== -1) return;
+      if (patch[key] !== null && typeof patch[key] !== 'undefined') {
+        existing[key] = patch[key];
+      }
+    });
 
     if (patch.resources) {
       existing.resources = mergeObject(existing.resources || {}, patch.resources);
+    }
+    if (patch.maxResources) {
+      existing.maxResources = mergeObject(existing.maxResources || {}, patch.maxResources);
+    }
+    if (patch.production) {
+      existing.production = mergeObject(existing.production || {}, patch.production);
     }
     if (patch.buildings) {
       existing.buildings = mergeObject(existing.buildings || {}, patch.buildings);
@@ -547,7 +606,9 @@
       'maxInhabitants',
       'maxScientists',
       'corruption',
-      'research'
+      'research',
+      'storageCapacity',
+      'resourceSafe'
     ].forEach(function(key) {
       if (patch[key] !== null && typeof patch[key] !== 'undefined') {
         existing[key] = patch[key];
@@ -875,12 +936,20 @@
       || normalizeResources(headerData.resources)
       || normalizeResources(data.currentResources)
       || normalizeResources(data.resources);
+    var maxResources = normalizeMaxResources(headerData.maxResources)
+      || normalizeMaxResources(data.maxResources);
+    var production = productionFromHeaderData(headerData)
+      || productionFromHeaderData(data)
+      || normalizeProduction(headerData.production)
+      || normalizeProduction(data.production);
     var buildings = normalizeBuildings({ position: backgroundData.position })
       || normalizeBuildings(backgroundData);
     var military = normalizeMilitary(backgroundData) || normalizeMilitary(headerData) || normalizeMilitary(data);
     var stats = normalizeCityStats(backgroundData) || normalizeCityStats(headerData) || normalizeCityStats(data);
 
     if (resources) patch.resources = resources;
+    if (maxResources) patch.maxResources = maxResources;
+    if (production) patch.production = production;
     if (buildings) patch.buildings = buildings;
     if (military) patch.military = military;
     if (stats) mergeObject(patch, stats);
@@ -915,6 +984,12 @@
       || normalizeResources(params.resources)
       || normalizeResources(citySource.resources)
       || normalizeResources(citySource);
+    var maxResources = normalizeMaxResources(params.maxResources)
+      || normalizeMaxResources(citySource.maxResources);
+    var production = productionFromHeaderData(params)
+      || productionFromHeaderData(citySource)
+      || normalizeProduction(params.production)
+      || normalizeProduction(citySource.production);
     var buildings = normalizeBuildings(citySource)
       || normalizeBuildings(params)
       || normalizeBuildings(candidate);
@@ -922,6 +997,8 @@
     var stats = normalizeCityStats(citySource) || normalizeCityStats(params);
 
     if (resources) patch.resources = resources;
+    if (maxResources) patch.maxResources = maxResources;
+    if (production) patch.production = production;
     if (buildings) patch.buildings = buildings;
     if (military) patch.military = military;
     if (stats) mergeObject(patch, stats);
@@ -1038,12 +1115,34 @@
   function buildingLevel(city, type) {
     var building = city && city.buildings && city.buildings[type];
     if (!building) return 0;
+    if (Array.isArray(building)) {
+      return building.reduce(function(max, item) {
+        return Math.max(max, asNumber(item && (item.level || item.currentLevel || item.buildingLevel), 0));
+      }, 0);
+    }
     if (typeof building === 'number') return building;
     if (typeof building === 'object') {
       return asNumber(building.level || building.currentLevel || building.buildingLevel, 0);
     }
 
     return 0;
+  }
+
+  function buildingItems(city, type) {
+    var building = city && city.buildings && city.buildings[type];
+    if (!building) return [];
+    return Array.isArray(building) ? building : [building];
+  }
+
+  function calculateResourceSafe(city) {
+    var safe = 100;
+    var warehouses = buildingItems(city, 'warehouse');
+
+    warehouses.forEach(function(warehouse) {
+      safe += 480 * asNumber(warehouse && (warehouse.level || warehouse.currentLevel || warehouse.buildingLevel), 0);
+    });
+
+    return safe;
   }
 
   function calculateCorruption(city, cityCount) {
@@ -1068,6 +1167,20 @@
 
       if (city.corruption === null || typeof city.corruption === 'undefined') {
         city.corruption = calculateCorruption(city, ownCount);
+      }
+
+      if (city.maxResources && typeof city.maxResources === 'object') {
+        city.storageCapacity = firstNumber(
+          city.maxResources.wood,
+          city.maxResources.wine,
+          city.maxResources.marble,
+          city.maxResources.glass,
+          city.maxResources.sulfur
+        );
+      }
+
+      if (city.buildings || city.resourceSafe === null || typeof city.resourceSafe === 'undefined') {
+        city.resourceSafe = calculateResourceSafe(city);
       }
 
       if (city.scientists !== null && typeof city.scientists !== 'undefined') {
