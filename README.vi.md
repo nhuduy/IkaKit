@@ -26,7 +26,7 @@ hiện tại và cân nhắc kỹ.
 
 ## Tính năng
 
-README hiện mô tả 12 nhóm chức năng:
+README hiện mô tả 14 nhóm chức năng:
 
 1. Empire Manager dạng modal được inject trực tiếp vào giao diện Ikariam.
 2. Tổng quan Resources theo từng thành phố, gồm tài nguyên, nhà ở, nghiên cứu
@@ -45,8 +45,15 @@ README hiện mô tả 12 nhóm chức năng:
     cấp công trình, tooltip chi phí/chênh lệch tài nguyên và cho phép nâng cấp
     trực tiếp khi thành phố đủ tài nguyên.
 12. Theo dõi điều hướng SPA để UI tự cập nhật khi Ikariam đổi view.
+13. Panel Alerts để cấu hình Military Alerts, mức độ nguy hiểm incoming, panel
+    cảnh báo trong game, desktop notification, badge count và reminder.
+14. Town News Notification Alert để phát hiện báo cáo gián điệp/quân sự đã xuất
+    hiện trong Town News, kèm nút scan, clear và test notification.
 
 Extension cũng có metadata bằng tiếng Anh và tiếng Việt.
+
+Bản port notification này không bao gồm Automation Center, Route Schedule,
+auto-send resource hoặc construction automation/Auto Builder.
 
 ## Yêu cầu
 
@@ -115,9 +122,11 @@ src/
   content/            Content scripts inject vào Ikariam
     helpers/          Storage, navigation và game data bridge
     modules/
+      alerts/         Panel Alerts độc lập
       cityWatcher/    Vòng tròn theo dõi/nâng cấp công trình trên town map
       empire/         Empire Manager và các tab tổng quan
       militaryAlerts/ Cảnh báo sự kiện quân sự incoming
+      notificationAlerts/ Cảnh báo Town News gián điệp/quân sự
       transport/      Quick controls cho form vận chuyển
   css/                Style inject vào game
   assets/             Icon và hình ảnh UI
@@ -140,12 +149,16 @@ IkaKit chạy trên các trang Ikariam khớp với:
 ```
 
 `content/loader.js` load module chính từ `content/init.js`. Entry point này
-khởi động Empire Manager, transport helpers, navigation watcher và game data
-layer.
+khởi động Empire Manager, Alerts panel, transport helpers, Military Alerts,
+Notification Alert, navigation watcher và game data layer.
 
 Game data layer inject bridge script vào page context, đọc dữ liệu Ikariam có
 sẵn, merge với cache chi tiết thành phố, rồi thông báo cho UI khi cần refresh
 tổng quan.
+
+Desktop notification được gửi qua background script của extension. Nếu alert đã
+được phát hiện nhưng không thấy notification hệ thống, hãy kiểm tra quyền
+notification của trình duyệt và hệ điều hành cho extension.
 
 ## License
 

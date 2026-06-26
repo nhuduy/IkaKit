@@ -25,7 +25,7 @@ review the current game rules and decide carefully.
 
 ## Features
 
-The README currently documents 12 feature areas:
+The README currently documents 14 feature areas:
 
 1. Empire Manager modal injected directly into the Ikariam interface.
 2. Resources overview by city, including goods, housing, research, and
@@ -44,8 +44,17 @@ The README currently documents 12 feature areas:
     circles, next-level cost/difference tooltips, and one-click upgrade when the
     city has enough resources.
 12. SPA navigation tracking so the UI can refresh when Ikariam changes views.
+13. Alerts panel with Military Alerts settings, incoming hostile severity,
+    in-game warning panel, desktop notifications, extension badge count, and
+    reminder controls.
+14. Town News Notification Alert for detecting espionage and military reports
+    that have already appeared in rendered Town News, with scan, clear, and test
+    notification controls.
 
 The extension also includes English and Vietnamese extension metadata.
+
+This notification port does not include Automation Center, Route Schedule,
+auto-send resource flows, or construction automation/Auto Builder features.
 
 ## Requirements
 
@@ -114,9 +123,11 @@ src/
   content/            Content scripts injected into Ikariam
     helpers/          Storage, navigation, and game data bridge helpers
     modules/
+      alerts/         Standalone Alerts panel
       cityWatcher/    Town-map construction upgrade circles
       empire/         Empire Manager and overview tabs
       militaryAlerts/ Incoming military event notifications
+      notificationAlerts/ Town News espionage/military alerts
       transport/      Quick controls for transport forms
   css/                Styles injected into the game
   assets/             Icons and UI images
@@ -139,12 +150,16 @@ IkaKit runs on Ikariam pages matching:
 ```
 
 `content/loader.js` loads the main module graph from `content/init.js`. The
-main entry point starts the Empire Manager, transport helpers, navigation
-watcher, and game data layer.
+main entry point starts the Empire Manager, Alerts panel, transport helpers,
+Military Alerts, Notification Alert, navigation watcher, and game data layer.
 
 The game data layer injects a bridge script into the page context, reads
 available Ikariam data, merges it with cached city details, and notifies the UI
 when the overview should refresh.
+
+Desktop notifications are sent by the extension background script. If alerts are
+detected but no system notification appears, check the browser and operating
+system notification permissions for the extension.
 
 ## License
 
