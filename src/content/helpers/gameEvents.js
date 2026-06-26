@@ -1,42 +1,88 @@
-// IkaKit - Minimal notification event relay.
+// IkaKit - Lightweight notification event store.
 
 import { sendRuntimeMessage } from './runtime.js';
 
+const DEFAULT_TTL = 6 * 60 * 60 * 1000;
+const MAX_EVENTS = 100;
+
+let eventsByKey = new Map();
 const listeners = new Set();
+
+function now() {
+  return Date.now();
+}
+
+function cleanString(value, fallback = '') {
+  const text = String(value ?? '').trim();
+  return text || fallback;
+}
+
+function normalizeSeverity(value) {
+  return ['critical', 'high', 'medium', 'low', 'info'].includes(value) ? value : 'info';
+}
 
 function normalizeEvent(source) {
   if (!source || typeof source !== 'object') return null;
 
-  const observedAt = Number(source.observedAt) || Date.now();
-  const type = String(source.type || 'game.unknown');
-  const category = String(source.category || type.split('.')[0] || 'game');
+  const observedAt = Number(source.observedAt) || now();
+  const type = cleanString(source.type, 'game.unknown');
+  const category = cleanString(source.category, type.split('.')[0] || 'game');
   const payload = source.payload && typeof source.payload === 'object' ? source.payload : {};
-  const dedupeKey = String(source.dedupeKey || [
-    category,
-    type,
-    source.cityId ?? '',
-    source.id ?? '',
-  ].join('|'));
+  const dedupeKey = cleanString(
+    source.dedupeKey,
+    [
+      category,
+      type,
+      source.cityId ?? '',
+      source.id ?? '',
+      source.title ?? '',
+      source.expiresAt ?? '',
+    ].join('|'),
+  );
 
   return {
-    id: String(source.id || `${type}:${dedupeKey}`),
+    id: cleanString(source.id, `${type}:${dedupeKey}`),
     type,
     category,
-    severity: String(source.severity || 'info'),
+    severity: normalizeSeverity(source.severity),
     cityId: source.cityId ?? null,
-    title: String(source.title || type),
-    message: String(source.message || ''),
+    title: cleanString(source.title, type),
+    message: cleanString(source.message),
     payload,
     dedupeKey,
     observedAt,
     updatedAt: Number(source.updatedAt) || observedAt,
-    expiresAt: Number(source.expiresAt) || observedAt + 6 * 60 * 60 * 1000,
-    source: String(source.source || 'content'),
+    expiresAt: Number(source.expiresAt) || observedAt + DEFAULT_TTL,
+    source: cleanString(source.source, 'content'),
   };
 }
 
+function isActive(event, timestamp = now()) {
+  return Number(event?.expiresAt) > timestamp;
+}
+
+function prune(timestamp = now()) {
+  for (const [key, event] of eventsByKey.entries()) {
+    if (!isActive(event, timestamp)) {
+      eventsByKey.delete(key);
+    }
+  }
+
+  const events = [...eventsByKey.values()]
+    .sort((left, right) => Number(right.updatedAt) - Number(left.updatedAt));
+
+  events.slice(MAX_EVENTS).forEach((event) => {
+    eventsByKey.delete(event.dedupeKey);
+  });
+}
+
 function notify(events, isNew = true) {
-  const payload = Object.freeze({ events, isNew });
+  const payload = Object.freeze({
+    events,
+    isNew,
+    activeEvents: gameEvents.getActiveEvents(),
+  });
+
   listeners.forEach((listener) => {
     try {
       listener(payload);
@@ -60,25 +106,72 @@ function sendToBackground(events) {
 
 const gameEvents = Object.freeze({
   emit(event) {
-    return gameEvents.emitMany([event]);
+    return this.emitMany([event]);
   },
 
-  emitMany(events) {
-    const normalized = (Array.isArray(events) ? events : [])
+  emitMany(sources) {
+    const timestamp = now();
+    const incoming = (Array.isArray(sources) ? sources : [])
       .map(normalizeEvent)
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter((event) => isActive(event, timestamp));
 
-    if (!normalized.length) return [];
+    if (!incoming.length) return [];
 
-    notify(normalized, true);
-    sendToBackground(normalized);
-    return normalized;
+    prune(timestamp);
+
+    const newEvents = [];
+    const changedEvents = [];
+
+    incoming.forEach((event) => {
+      const existing = eventsByKey.get(event.dedupeKey);
+      const merged = {
+        ...existing,
+        ...event,
+        observedAt: existing?.observedAt ?? event.observedAt,
+        updatedAt: timestamp,
+      };
+
+      eventsByKey.set(event.dedupeKey, merged);
+      changedEvents.push(merged);
+
+      if (!existing) {
+        newEvents.push(merged);
+      }
+    });
+
+    notify(changedEvents, Boolean(newEvents.length));
+    sendToBackground(newEvents);
+    return newEvents;
+  },
+
+  on(listener) {
+    if (typeof listener !== 'function') return () => {};
+    listeners.add(listener);
+
+    return () => listeners.delete(listener);
   },
 
   onChange(listener) {
-    if (typeof listener !== 'function') return () => {};
-    listeners.add(listener);
-    return () => listeners.delete(listener);
+    return this.on(listener);
+  },
+
+  getActiveEvents() {
+    prune();
+    return [...eventsByKey.values()]
+      .sort((left, right) => Number(left.expiresAt) - Number(right.expiresAt));
+  },
+
+  toJSON() {
+    return this.getActiveEvents().map((event) => ({
+      ...event,
+      payload: event.payload && typeof event.payload === 'object' ? { ...event.payload } : {},
+    }));
+  },
+
+  clear() {
+    eventsByKey = new Map();
+    notify([], false);
   },
 });
 
