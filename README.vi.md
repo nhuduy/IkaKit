@@ -26,7 +26,7 @@ hiện tại và cân nhắc kỹ.
 
 ## Tính năng
 
-README hiện mô tả 14 nhóm chức năng:
+README hiện mô tả 16 nhóm chức năng:
 
 1. Empire Manager dạng modal được inject trực tiếp vào giao diện Ikariam.
 2. Tổng quan Resources theo từng thành phố, gồm tài nguyên, nhà ở, nghiên cứu
@@ -49,11 +49,16 @@ README hiện mô tả 14 nhóm chức năng:
     cảnh báo trong game, desktop notification, badge count và reminder.
 14. Town News Notification Alert để phát hiện báo cáo gián điệp/quân sự đã xuất
     hiện trong Town News, kèm nút scan, clear và test notification.
+15. Tab Research trong Empire Manager với đồng bộ Research Advisor, tổng quan
+    nhóm nghiên cứu, bảng academy/scientist và nút mở Research Advisor/Academy.
+16. Tab Events trong Alerts để xem sự kiện Military, Town News và game đang
+    active, kèm filter, copy, refresh và clear.
 
 Extension cũng có metadata bằng tiếng Anh và tiếng Việt.
 
 Bản port notification này không bao gồm Automation Center, Route Schedule,
-auto-send resource hoặc construction automation/Auto Builder.
+auto-send resource, floating game-event launcher hoặc construction
+automation/Auto Builder.
 
 ## Yêu cầu
 
@@ -122,7 +127,7 @@ src/
   content/            Content scripts inject vào Ikariam
     helpers/          Storage, navigation và game data bridge
     modules/
-      alerts/         Panel Alerts độc lập
+      alerts/         Panel Alerts độc lập kèm tab Events
       cityWatcher/    Vòng tròn theo dõi/nâng cấp công trình trên town map
       empire/         Empire Manager và các tab tổng quan
       militaryAlerts/ Cảnh báo sự kiện quân sự incoming
@@ -153,12 +158,16 @@ khởi động Empire Manager, Alerts panel, transport helpers, Military Alerts,
 Notification Alert, navigation watcher và game data layer.
 
 Game data layer inject bridge script vào page context, đọc dữ liệu Ikariam có
-sẵn, merge với cache chi tiết thành phố, rồi thông báo cho UI khi cần refresh
-tổng quan.
+sẵn, quét Research Advisor khi được yêu cầu, merge với cache chi tiết thành phố,
+rồi thông báo cho UI khi cần refresh tổng quan.
 
 Desktop notification được gửi qua background script của extension. Nếu alert đã
 được phát hiện nhưng không thấy notification hệ thống, hãy kiểm tra quyền
 notification của trình duyệt và hệ điều hành cho extension.
+
+Tab Alerts Events dùng store active event trong bộ nhớ. Tab này hiển thị sự
+kiện được phát hiện trong phiên content script hiện tại và không lưu trạng thái
+automation.
 
 ## License
 

@@ -99,3 +99,16 @@ then keep each feature commit narrow and auditable.
 - Town News Notification Alert still emits through `gameEvents.emit(...)`.
 - The helper still relays new active events to the background with
   `__ikakit: 'gameEvents'`.
+
+## Phase 3 Verification
+
+- `npm run build:chrome` passed.
+- `npm run build:firefox` passed.
+- Alerts tabs are now `Military Alerts`, `Town News`, and `Events`.
+- `Events` uses the compact `gameEvents` APIs: `on`, `getActiveEvents`,
+  `toJSON`, and `clear`.
+- Static audit found no runtime or README references to `automationCenter`,
+  `autoSendResource`, `routeSchedule`, `constructionOverview`, or user-facing
+  `IkaLabs` strings.
+- README and README.vi document the Research tab, embedded Events tab, and the
+  continued exclusion of floating event launchers and automation features.

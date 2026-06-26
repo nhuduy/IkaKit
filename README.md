@@ -25,7 +25,7 @@ review the current game rules and decide carefully.
 
 ## Features
 
-The README currently documents 14 feature areas:
+The README currently documents 16 feature areas:
 
 1. Empire Manager modal injected directly into the Ikariam interface.
 2. Resources overview by city, including goods, housing, research, and
@@ -50,11 +50,16 @@ The README currently documents 14 feature areas:
 14. Town News Notification Alert for detecting espionage and military reports
     that have already appeared in rendered Town News, with scan, clear, and test
     notification controls.
+15. Research tab in Empire Manager with advisor sync, category overview,
+    academy/scientist table, and direct Research Advisor/Academy actions.
+16. Events tab inside Alerts for active Military, Town News, and game events,
+    with filter, copy, refresh, and clear controls.
 
 The extension also includes English and Vietnamese extension metadata.
 
 This notification port does not include Automation Center, Route Schedule,
-auto-send resource flows, or construction automation/Auto Builder features.
+auto-send resource flows, floating game-event launchers, or construction
+automation/Auto Builder features.
 
 ## Requirements
 
@@ -123,7 +128,7 @@ src/
   content/            Content scripts injected into Ikariam
     helpers/          Storage, navigation, and game data bridge helpers
     modules/
-      alerts/         Standalone Alerts panel
+      alerts/         Standalone Alerts panel with alert settings and Events
       cityWatcher/    Town-map construction upgrade circles
       empire/         Empire Manager and overview tabs
       militaryAlerts/ Incoming military event notifications
@@ -154,12 +159,16 @@ main entry point starts the Empire Manager, Alerts panel, transport helpers,
 Military Alerts, Notification Alert, navigation watcher, and game data layer.
 
 The game data layer injects a bridge script into the page context, reads
-available Ikariam data, merges it with cached city details, and notifies the UI
-when the overview should refresh.
+available Ikariam data, scans Research Advisor data when requested, merges it
+with cached city details, and notifies the UI when the overview should refresh.
 
 Desktop notifications are sent by the extension background script. If alerts are
 detected but no system notification appears, check the browser and operating
 system notification permissions for the extension.
+
+The Alerts Events tab uses an in-memory active event store. It shows events
+detected during the current content-script session and does not persist
+automation state.
 
 ## License
 
