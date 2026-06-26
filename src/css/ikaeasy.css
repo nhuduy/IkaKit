@@ -1389,6 +1389,64 @@
   color: #75532c;
 }
 
+.ika-notification-alert-list {
+  display: grid;
+  gap: 7px;
+}
+
+.ika-notification-alert-row {
+  display: grid;
+  gap: 4px;
+  padding: 7px 8px;
+  color: #4b2d12;
+  background: #fffaf0;
+  border: 1px solid #d2a55f;
+  border-left-width: 4px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.ika-notification-alert-high {
+  border-left-color: #a8511f;
+}
+
+.ika-notification-alert-info {
+  border-left-color: #627a27;
+}
+
+.ika-notification-alert-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  color: #542c0f;
+}
+
+.ika-notification-alert-meta strong {
+  font-weight: 700;
+}
+
+.ika-notification-alert-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 18px;
+  padding: 1px 6px;
+  color: #fff8dc;
+  background: #a8511f;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ika-notification-alert-message {
+  color: #4b2d12;
+}
+
+.ika-notification-alert-foot {
+  color: #75532c;
+  font-size: 10px;
+}
+
 @media (max-width: 640px) {
   .ika-modal {
     padding: 16px 8px;
