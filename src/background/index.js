@@ -1,6 +1,8 @@
 // IkaKit — Background Service Worker (Chrome) / Background Script (Firefox)
 // Dùng browser.* thay vì chrome.* — webextension-polyfill lo phần còn lại
 
+import { loadLanguage, t } from '../shared/i18n/index.js';
+
 const MILITARY_EVENTS_KEY = 'ika_military_alert_events';
 const MILITARY_SETTINGS_KEY = 'ika_military_alert_settings';
 const GAME_EVENTS_KEY = 'ika_game_events:background';
@@ -23,10 +25,14 @@ const DEFAULT_MILITARY_SETTINGS = Object.freeze({
   },
 });
 const SEVERITY_LABELS = Object.freeze({
-  critical: 'Khẩn cấp',
-  high: 'Nguy hiểm',
-  medium: 'Cần để ý',
-  low: 'Theo dõi',
+  critical: 'background.severity.critical',
+  high: 'background.severity.high',
+  medium: 'background.severity.medium',
+  low: 'background.severity.low',
+});
+
+loadLanguage().catch((error) => {
+  console.warn('[IkaKit] Could not initialize background language:', error);
 });
 
 function promisify(callbackStyleCall) {
@@ -187,7 +193,7 @@ function normalizeGameEvent(event) {
     category: String(event.category || 'game'),
     severity: String(event.severity || 'info'),
     cityId: event.cityId ?? null,
-    title: String(event.title || event.type || 'Game Event'),
+    title: String(event.title || event.type || t('background.event.defaultTitle')),
     message: String(event.message || ''),
     payload: event.payload && typeof event.payload === 'object' ? event.payload : {},
     dedupeKey: gameEventKey(event),
@@ -251,7 +257,7 @@ function formatRemaining(arrivalAt) {
   const remainingMs = Number(arrivalAt) - Date.now();
 
   if (!Number.isFinite(remainingMs) || remainingMs <= 0) {
-    return 'sắp tới nơi';
+    return t('background.remaining.arriving');
   }
 
   const minutes = Math.max(1, Math.round(remainingMs / 60000));
@@ -259,39 +265,41 @@ function formatRemaining(arrivalAt) {
   const rest = minutes % 60;
 
   if (hours > 0 && rest > 0) {
-    return `còn ${hours}h ${rest}m`;
+    return t('background.remaining.hoursMinutes', { hours, minutes: rest });
   }
 
   if (hours > 0) {
-    return `còn ${hours}h`;
+    return t('background.remaining.hours', { hours });
   }
 
-  return `còn ${minutes} phút`;
+  return t('background.remaining.minutes', { minutes });
 }
 
 function eventTitle(event, reminderMinutes = null) {
-  const severity = SEVERITY_LABELS[event.severity] ?? SEVERITY_LABELS.low;
+  const severity = t(SEVERITY_LABELS[event.severity] ?? SEVERITY_LABELS.low);
 
   if (reminderMinutes !== null) {
-    return `Ikariam: ${severity}, còn ${reminderMinutes} phút`;
+    return t('background.notification.reminderTitle', { severity, minutes: reminderMinutes });
   }
 
   if (event.type === 'blockade') {
-    return `Ikariam: ${severity}, có phong tỏa incoming`;
+    return t('background.notification.blockadeTitle', { severity });
   }
 
   if (event.type === 'occupation') {
-    return `Ikariam: ${severity}, có chiếm đóng incoming`;
+    return t('background.notification.occupationTitle', { severity });
   }
 
-  return `Ikariam: ${severity}, bạn đang bị tấn công`;
+  return t('background.notification.attackTitle', { severity });
 }
 
 function eventMessage(event) {
-  const target = event.target ? `Thành ${event.target}` : 'Thành của bạn';
-  const origin = event.origin ? ` từ ${event.origin}` : '';
+  const target = event.target
+    ? t('background.notification.targetNamed', { target: event.target })
+    : t('background.notification.defaultTarget');
+  const origin = event.origin ? t('background.notification.origin', { origin: event.origin }) : '';
 
-  return `${target}${origin}, ${formatRemaining(event.arrivalAt)}.`;
+  return t('background.notification.message', { target, origin, remaining: formatRemaining(event.arrivalAt) });
 }
 
 async function getStoredEvents() {
@@ -344,6 +352,7 @@ async function updateActionBadge(events) {
 }
 
 async function createNotification(event, suffix = 'now', reminderMinutes = null) {
+  await loadLanguage();
   const settings = await getMilitarySettings();
 
   if (!settings.enabled || !settings.notifications) {
@@ -468,6 +477,7 @@ async function saveStoredGameEvents(events) {
 }
 
 async function handleHighSeverityGameEvent(event) {
+  await loadLanguage();
   if (event?.payload?.suppressNotification) return;
 
   if (event?.source !== 'notificationAlerts') {
@@ -490,11 +500,12 @@ async function handleHighSeverityGameEvent(event) {
 }
 
 async function createDiagnosticNotification() {
+  await loadLanguage();
   const options = {
     type: 'basic',
     iconUrl: extensionApi.runtime.getURL('assets/icon/128.png'),
-    title: 'IkaKit: Test notification',
-    message: 'If you can see this, browser and OS notifications are working.',
+    title: t('background.notification.testTitle'),
+    message: t('background.notification.testMessage'),
   };
 
   if (globalThis.chrome) {

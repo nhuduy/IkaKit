@@ -5,6 +5,7 @@ import { Buildings } from '../../const.js';
 import gameData from '../../helpers/gameData.js';
 import navigation from '../../helpers/navigation.js';
 import BUILDING_COSTS from '../empire/buildingCosts.js';
+import { t } from '../../../shared/i18n/index.js';
 
 const WATCHER_ID = 'ika-city-watchers';
 const UPDATE_DELAY = 80;
@@ -429,7 +430,7 @@ function createTooltip(city, item, rows, canUpgrade) {
   title.addEventListener('click', () => openBuilding(city, item));
 
   upgrade.type = 'button';
-  upgrade.title = canUpgrade ? 'Upgrade' : 'Not enough resources';
+  upgrade.title = canUpgrade ? t('cityWatcher.upgrade') : t('cityWatcher.notEnoughResources');
   upgrade.disabled = !canUpgrade;
   upgrade.addEventListener('click', (event) => {
     event.stopPropagation();
@@ -444,11 +445,11 @@ function createTooltip(city, item, rows, canUpgrade) {
   });
 
   downgrade.type = 'button';
-  downgrade.title = 'Downgrade';
+  downgrade.title = t('cityWatcher.downgrade');
   downgrade.disabled = true;
 
   buttons.append(upgrade, downgrade);
-  ['', 'Cost', 'Difference'].forEach((text) => header.appendChild(makeEl('th', '', text)));
+  ['', t('cityWatcher.cost'), t('cityWatcher.difference')].forEach((text) => header.appendChild(makeEl('th', '', text)));
   thead.appendChild(header);
 
   rows.forEach((row) => {
@@ -467,7 +468,7 @@ function createTooltip(city, item, rows, canUpgrade) {
 
   if (!rows.length) {
     const row = document.createElement('tr');
-    const cell = makeEl('td', 'ika-city-watcher-final', 'Max level');
+    const cell = makeEl('td', 'ika-city-watcher-final', t('cityWatcher.maxLevel'));
     cell.colSpan = 3;
     row.appendChild(cell);
     tbody.appendChild(row);
