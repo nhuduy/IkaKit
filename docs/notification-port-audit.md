@@ -103,3 +103,11 @@ initialize automation modules.
 - Use `renderPanel` from the two alert modules and avoid Automation Center.
 - Keep modal selectors under `ika-alerts-*` so Town News can ignore its own UI
   mutations.
+
+## Phase 5 Verification
+
+- `npm run build:chrome` passed.
+- `npm run build:firefox` passed.
+- Alerts UI wires `Alerts` button/FAB, tab switching, and `ika-alerts-modal`.
+- Alerts UI contains no IkaLabs or automation module references.
+- Manifest web-accessible resource additions are intentionally left for Phase 6.
