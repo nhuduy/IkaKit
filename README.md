@@ -29,6 +29,10 @@ Features, FAQ, and a link back to this English README for complete details.
 
 ![IkaKit Empire Manager demo](docs/assets/empire-manager.png)
 
+### Buildings Overview
+
+![IkaKit Empire Manager Buildings overview](docs/assets/2.png)
+
 The demo image has been sanitized before publishing: coordinates, town names,
 and selected in-game values were edited so the account owner who helped test
 the extension is not exposed.

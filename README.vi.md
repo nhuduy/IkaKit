@@ -30,6 +30,10 @@ gồm Installation, Features, FAQ và link về README tiếng Anh để đọc 
 
 ![Demo IkaKit Empire Manager](docs/assets/empire-manager.png)
 
+### Tổng Quan Công Trình
+
+![Tổng quan công trình trong IkaKit Empire Manager](docs/assets/2.png)
+
 Ảnh demo đã được chỉnh sửa trước khi công khai: tọa độ, tên town và một vài
 thông số trong game đã được thay đổi để không ảnh hưởng tới player đã cho mượn
 account phục vụ quá trình làm và test extension này.
