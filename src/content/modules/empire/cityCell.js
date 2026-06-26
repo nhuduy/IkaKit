@@ -1,4 +1,5 @@
 import gameData from '../../helpers/gameData.js';
+import { t } from '../../../shared/i18n/index.js';
 
 const ISLAND_RESOURCE_ICONS = Object.freeze({
   1: 'icon_wine.png',
@@ -45,7 +46,7 @@ function islandIconPath(city) {
 
 export function appendCityHeader(row) {
   const th = document.createElement('th');
-  th.textContent = 'City';
+  th.textContent = t('common.city');
   row.appendChild(th);
 
   return th;

@@ -15,12 +15,12 @@ import {
 const STORAGE_KEY = 'ika_empire_active_tab';
 
 const TABS = ['resources', 'buildings', 'research', 'military', 'espionage'];
-const TAB_LABELS = {
-  resources: 'Resources',
-  buildings: 'Buildings',
-  research:  'Research',
-  military:  'Military',
-  espionage: 'Espionage',
+const TAB_LABEL_KEYS = {
+  resources: 'empire.tab.resources',
+  buildings: 'empire.tab.buildings',
+  research: 'empire.tab.research',
+  military: 'empire.tab.military',
+  espionage: 'empire.tab.espionage',
 };
 
 let _modal = null;
@@ -70,7 +70,7 @@ function _createMenuButton() {
   const item = document.createElement('li');
   item.id = 'ika-empire-btn';
   item.className = 'slot ika-empire-btn';
-  item.title = 'Empire Manager';
+  item.title = t('empire.title');
 
   const icon = document.createElement('div');
   icon.className = 'image ika-empire-icon';
@@ -79,7 +79,7 @@ function _createMenuButton() {
   const labelText = document.createElement('span');
   label.className = 'name';
   labelText.className = 'namebox ika-empire-label';
-  labelText.textContent = 'Empire';
+  labelText.textContent = t('empire.button');
 
   label.appendChild(labelText);
   item.append(icon, label);
@@ -112,7 +112,7 @@ async function _injectButton() {
     button.id = 'ika-empire-btn';
     button.className = 'ika-empire-fab';
     button.type = 'button';
-    button.textContent = 'Empire';
+    button.textContent = t('empire.button');
     button.addEventListener('click', () => empire.toggle());
     document.body.appendChild(button);
   }
@@ -121,7 +121,7 @@ async function _injectButton() {
 function _createLoading() {
   const loading = document.createElement('div');
   loading.className = 'ika-loading';
-  loading.textContent = 'Đang tải...';
+  loading.textContent = t('empire.loading');
 
   return loading;
 }
@@ -159,25 +159,27 @@ function _formatScanStatus(data) {
   const cityCount = data?.debug?.cityCount ?? data?.cities?.length ?? 0;
 
   if (!scan) {
-    return cityCount ? `${cityCount} cities` : 'Ready';
+    return cityCount ? t('empire.scan.cities', { count: cityCount }) : t('common.ready');
   }
 
   if (scan.inProgress) {
     const total = Number(scan.total) || cityCount;
     const fetched = Number(scan.fetched) || 0;
-    return total ? `Scanning ${fetched}/${total}` : 'Scanning';
+    return total ? t('empire.scan.scanningProgress', { fetched, total }) : t('empire.scan.scanning');
   }
 
   if (scan.lastError) {
-    return 'Scan warning';
+    return t('empire.scan.warning');
   }
 
   if (scan.total) {
     const syncedAt = _formatTime(scan.lastCompleted);
-    return syncedAt ? `Synced ${scan.total} • ${syncedAt}` : `Synced ${scan.total} cities`;
+    return syncedAt
+      ? t('empire.scan.syncedAt', { count: scan.total, time: syncedAt })
+      : t('empire.scan.synced', { count: scan.total });
   }
 
-  return cityCount ? `${cityCount} cities` : 'Ready';
+  return cityCount ? t('empire.scan.cities', { count: cityCount }) : t('common.ready');
 }
 
 function _formatTime(timestamp) {
@@ -203,7 +205,7 @@ function _updateScanStatus(data = gameData.get()) {
     status.classList.toggle('ika-scan-status-warning', Boolean(scan?.lastError && !scan?.inProgress));
     status.title = scan?.lastError
       ? String(scan.lastError)
-      : (_formatTime(scan?.lastCompleted) ? `Last synced at ${_formatTime(scan.lastCompleted)}` : '');
+      : (_formatTime(scan?.lastCompleted) ? t('empire.scan.lastSyncedAt', { time: _formatTime(scan.lastCompleted) }) : '');
   }
 
   if (refresh) {
@@ -287,7 +289,7 @@ function _buildModal() {
 
   const title = document.createElement('span');
   title.className = 'ika-modal-title';
-  title.textContent = 'Empire Manager';
+  title.textContent = t('empire.title');
 
   const actions = document.createElement('div');
   actions.className = 'ika-modal-actions';
@@ -295,14 +297,14 @@ function _buildModal() {
   const scanStatus = document.createElement('span');
   scanStatus.id = 'ika-scan-status';
   scanStatus.className = 'ika-scan-status';
-  scanStatus.textContent = 'Ready';
+  scanStatus.textContent = t('common.ready');
 
   const refresh = document.createElement('button');
   refresh.id = 'ika-scan-refresh';
   refresh.className = 'ika-scan-refresh';
   refresh.type = 'button';
-  refresh.title = 'Refresh empire data';
-  refresh.textContent = 'Reload';
+  refresh.title = t('empire.refreshTitle');
+  refresh.textContent = t('empire.refresh');
   refresh.addEventListener('click', () => {
     gameData.requestCityScan(true);
     gameData.requestResearchScan(true);
@@ -321,7 +323,7 @@ function _buildModal() {
   const close = document.createElement('button');
   close.className = 'ika-modal-close';
   close.type = 'button';
-  close.title = 'Close';
+  close.title = t('common.close');
   close.innerHTML = '&times;';
   close.addEventListener('click', () => empire.close());
 
@@ -333,7 +335,7 @@ function _buildModal() {
     button.className = `ika-tab${tab === _activeTab ? ' ika-tab-active' : ''}`;
     button.type = 'button';
     button.dataset.tab = tab;
-    button.textContent = TAB_LABELS[tab];
+    button.textContent = t(TAB_LABEL_KEYS[tab]);
     button.addEventListener('click', () => _switchTab(tab));
     tabs.appendChild(button);
   });
@@ -423,7 +425,7 @@ async function _switchTab(tab) {
 
     const error = document.createElement('div');
     error.className = 'ika-error';
-    error.textContent = `Module "${TAB_LABELS[tab]}" chưa sẵn sàng.`;
+    error.textContent = t('empire.moduleUnavailable', { module: t(TAB_LABEL_KEYS[tab]) });
     content.replaceChildren(error);
   }
 }

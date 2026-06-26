@@ -5,6 +5,7 @@ import { Buildings, Military } from '../../const.js';
 import gameData from '../../helpers/gameData.js';
 import { appendMilitaryTransportCell, appendTransportHeader } from './transportActions.js';
 import { appendCityCell, appendCityHeader } from './cityCell.js';
+import { t } from '../../../shared/i18n/index.js';
 
 const UNIT_TYPES = Object.freeze(Object.values(Military).filter((type) => !type.startsWith('ship_')));
 const SHIP_TYPES = Object.freeze(Object.values(Military).filter((type) => type.startsWith('ship_')));
@@ -86,7 +87,7 @@ function makeTrainingShortcut(cell, city, kind) {
   }
 
   cell.classList.add('ika-building-clickable', 'ika-military-training-clickable');
-  cell.title = `${kind === 'ships' ? 'Shipyard' : 'Barracks'} - ${city.name ?? 'Town'}`;
+  cell.title = `${kind === 'ships' ? t('empire.military.shipyard') : t('empire.military.barracks')} - ${city.name ?? t('empire.military.town')}`;
   cell.addEventListener('click', () => {
     gameData.openGameView({
       __ikakitMode: 'location',
@@ -208,8 +209,8 @@ const military = Object.freeze({
     const wrapper = document.createElement('div');
     const tabBar = document.createElement('div');
     const content = document.createElement('div');
-    const unitsButton = createTabButton('Units', activeMilitaryTab === 'units');
-    const shipsButton = createTabButton('Ships', activeMilitaryTab === 'ships');
+    const unitsButton = createTabButton(t('empire.military.units'), activeMilitaryTab === 'units');
+    const shipsButton = createTabButton(t('empire.military.ships'), activeMilitaryTab === 'ships');
 
     wrapper.className = 'ika-military';
     tabBar.className = 'ika-tabs ika-military-tabs';

@@ -6,6 +6,7 @@ import gameData from '../../helpers/gameData.js';
 import BUILDING_COSTS from './buildingCosts.js';
 import { appendResourceTransportCell, appendTransportHeader } from './transportActions.js';
 import { appendCityCell, appendCityHeader } from './cityCell.js';
+import { t } from '../../../shared/i18n/index.js';
 
 let _activeBuildingFilter = null;
 
@@ -27,11 +28,11 @@ const COST_REDUCERS = Object.freeze({
   sulfur: 'fireworker',
 });
 const RESOURCE_LABELS = Object.freeze({
-  wood: 'Wood',
-  marble: 'Marble',
-  wine: 'Wine',
-  glass: 'Crystal',
-  sulfur: 'Sulfur',
+  wood: 'empire.resource.wood',
+  marble: 'empire.resource.marble',
+  wine: 'empire.resource.wine',
+  glass: 'empire.resource.glass',
+  sulfur: 'empire.resource.sulfur',
 });
 const BUILDING_ICON_POSITIONS = Object.freeze({
   townHall: 0,
@@ -498,15 +499,18 @@ function formatBuildingTitle(city, buildingType, buildingData) {
 
   if (isUpgrading(buildingData)) {
     const range = formatUpgradeRange(buildingData);
-    return `${getBuildingLabel(buildingType, buildingData)} under construction${range ? `: ${range}` : ''}`;
+    return t('empire.building.titleUnderConstruction', {
+      building: getBuildingLabel(buildingType, buildingData),
+      range: range ? t('empire.building.titleRange', { range }) : '',
+    });
   }
 
   if (isUpgrading(buildingData) && (!cost || !Object.keys(cost).length)) {
-    return 'Upgrading to max level';
+    return t('empire.building.upgradingToMax');
   }
 
   if (!cost || !Object.keys(cost).length) {
-    return 'Max level';
+    return t('empire.building.maxLevel');
   }
 
   return Object.entries(cost)
@@ -521,7 +525,7 @@ function appendTooltipRow(tooltip, city, resource, amount) {
   row.dataset.enough = String(available >= amount);
 
   const label = document.createElement('span');
-  label.textContent = RESOURCE_LABELS[resource] || labelFromKey(resource);
+  label.textContent = RESOURCE_LABELS[resource] ? t(RESOURCE_LABELS[resource]) : labelFromKey(resource);
 
   const value = document.createElement('span');
   value.textContent = `${available.toLocaleString()} / ${amount.toLocaleString()}`;
@@ -544,7 +548,9 @@ function createBuildingTooltip(city, buildingType, buildingData) {
   if (isUpgrading(buildingData)) {
     const state = document.createElement('div');
     state.className = 'ika-building-tooltip-state';
-    state.textContent = `Under construction: ${formatUpgradeRange(buildingData) || 'in progress'}`;
+    state.textContent = t('empire.building.underConstruction', {
+      range: formatUpgradeRange(buildingData) || t('empire.building.inProgress'),
+    });
     tooltip.appendChild(state);
   }
 
@@ -555,14 +561,14 @@ function createBuildingTooltip(city, buildingType, buildingData) {
   if (!cost || !Object.keys(cost).length) {
     const state = document.createElement('div');
     state.className = 'ika-building-tooltip-state';
-    state.textContent = 'Max level';
+    state.textContent = t('empire.building.maxLevel');
     tooltip.appendChild(state);
     return tooltip;
   }
 
   const heading = document.createElement('div');
   heading.className = 'ika-building-tooltip-heading';
-  heading.textContent = `Next level ${getNextCostBaseLevel(buildingData) + 1}`;
+  heading.textContent = t('empire.building.nextLevel', { level: getNextCostBaseLevel(buildingData) + 1 });
   tooltip.appendChild(heading);
 
   Object.entries(cost).forEach(([resource, amount]) => appendTooltipRow(tooltip, city, resource, amount));
@@ -702,15 +708,15 @@ function createFilterBar(allCities, columns, onFilterChange) {
   bar.className = 'ika-filter-bar';
 
   [
-    ['upgrading', '🔨 Đang xây'],
-    ['enough', '✅ Có thể xây'],
-    ['missing', '⛔ Thiếu tài nguyên xây'],
-    ['absent', 'Ø Chưa tồn tại'],
-  ].forEach(([id, label]) => {
+    ['upgrading', 'empire.building.filter.upgrading'],
+    ['enough', 'empire.building.filter.enough'],
+    ['missing', 'empire.building.filter.missing'],
+    ['absent', 'empire.building.filter.absent'],
+  ].forEach(([id, labelKey]) => {
     createFilterChip({
       bar,
       id,
-      label,
+      label: t(labelKey),
       count: allCities.filter((city) => cityMatchesBuildingFilter(city, columns, id)).length,
       onFilterChange,
     });

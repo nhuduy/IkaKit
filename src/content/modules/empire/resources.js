@@ -3,13 +3,14 @@
 
 import { appendResourceTransportCell, appendTransportHeader } from './transportActions.js';
 import { appendCityCell, appendCityHeader } from './cityCell.js';
+import { t } from '../../../shared/i18n/index.js';
 
 const RESOURCE_COLUMNS = Object.freeze([
-  ['wood', 'Wood', 'icon_wood.png'],
-  ['wine', 'Wine', 'icon_wine.png'],
-  ['marble', 'Marble', 'icon_marble.png'],
-  ['glass', 'Glass', 'icon_glass.png'],
-  ['sulfur', 'Sulfur', 'icon_sulfur.png'],
+  ['wood', 'empire.resource.wood', 'icon_wood.png'],
+  ['wine', 'empire.resource.wine', 'icon_wine.png'],
+  ['marble', 'empire.resource.marble', 'icon_marble.png'],
+  ['glass', 'empire.resource.glass', 'icon_glass.png'],
+  ['sulfur', 'empire.resource.sulfur', 'icon_sulfur.png'],
 ]);
 
 function resolveContainer(container) {
@@ -78,7 +79,7 @@ function appendCorruptionCell(row, city) {
   const cell = appendCell(row, text, Number.isFinite(number) && number === 0 ? 'ika-good' : 'ika-bad');
 
   cell.classList.add('ika-resource-corruption-cell');
-  cell.title = 'Corruption';
+  cell.title = t('empire.resource.corruption');
 }
 
 function appendHousingCell(row, city) {
@@ -142,13 +143,13 @@ function createHeader() {
   appendTransportHeader(row);
 
   [
-    ['Corruption', 'corruption_24x24.png', 'Corruption', 'ika-resource-corruption-cell'],
-    ['Housing space', 'icon_population.png', 'Housing', 'ika-resource-housing-cell'],
-    ['Research per hour', 'icon_research.png', 'Research', 'ika-resource-research-cell'],
-  ].forEach(([label, icon, fallback, className]) => {
+    ['empire.resource.corruption', 'corruption_24x24.png', 'empire.resource.corruption', 'ika-resource-corruption-cell'],
+    ['empire.resource.housingSpace', 'icon_population.png', 'empire.resource.housing', 'ika-resource-housing-cell'],
+    ['empire.resource.researchPerHour', 'icon_research.png', 'empire.resource.research', 'ika-resource-research-cell'],
+  ].forEach(([labelKey, icon, fallbackKey, className]) => {
     const th = document.createElement('th');
     th.className = `ika-resource-header ika-resource-meta-header ${className}`;
-    th.title = label;
+    th.title = t(labelKey);
 
     if (icon) {
       const img = document.createElement('img');
@@ -157,16 +158,16 @@ function createHeader() {
       img.src = browser.runtime.getURL(`assets/images/empire/resources/${icon}`);
       th.appendChild(img);
     } else {
-      th.textContent = fallback;
+      th.textContent = t(fallbackKey);
     }
 
     row.appendChild(th);
   });
 
-  RESOURCE_COLUMNS.forEach(([key, label, icon]) => {
+  RESOURCE_COLUMNS.forEach(([key, labelKey, icon]) => {
     const th = document.createElement('th');
     th.className = 'ika-resource-header';
-    th.title = label;
+    th.title = t(labelKey);
 
     if (icon) {
       const img = document.createElement('img');

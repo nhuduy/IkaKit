@@ -1,4 +1,5 @@
 import gameData from '../../helpers/gameData.js';
+import { t } from '../../../shared/i18n/index.js';
 
 const ACTION_ICONS = Object.freeze({
   resources: 'res.png',
@@ -34,7 +35,7 @@ function createActionButton(action, title, params) {
 export function appendTransportHeader(row) {
   const th = document.createElement('th');
   th.className = 'ika-transport-header';
-  th.title = 'Actions';
+  th.title = t('common.actions');
   row.appendChild(th);
 }
 
@@ -84,14 +85,14 @@ function actionsForCity(city, actions) {
 
   const params = {
     resources: {
-      title: 'Transport resources',
+      title: t('empire.action.transportResources'),
       query: {
         view: 'transport',
         destinationCityId: cityId,
       },
     },
     fleet: {
-      title: 'Deploy fleet',
+      title: t('empire.action.deployFleet'),
       query: {
         view: 'deployment',
         deploymentType: 'fleet',
@@ -99,7 +100,7 @@ function actionsForCity(city, actions) {
       },
     },
     army: {
-      title: 'Deploy army',
+      title: t('empire.action.deployArmy'),
       query: {
         view: 'deployment',
         deploymentType: 'army',

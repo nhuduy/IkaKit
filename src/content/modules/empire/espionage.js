@@ -4,11 +4,12 @@
 import { Buildings } from '../../const.js';
 import { appendResourceTransportCell, appendTransportHeader } from './transportActions.js';
 import { appendCityCell, appendCityHeader } from './cityCell.js';
+import { t } from '../../../shared/i18n/index.js';
 
 const ESPIONAGE_BUILDINGS = Object.freeze([
-  ['Hideout/Safehouse', Buildings.HIDEOUT],
-  ['Academy', Buildings.ACADEMY],
-  ['Workshop', Buildings.WORKSHOP],
+  ['empire.espionage.hideout', Buildings.HIDEOUT],
+  ['empire.espionage.academy', Buildings.ACADEMY],
+  ['empire.espionage.workshop', Buildings.WORKSHOP],
 ]);
 
 function resolveContainer(container) {
@@ -78,8 +79,8 @@ function createHeader() {
   appendCityHeader(row);
   appendTransportHeader(row);
 
-  ESPIONAGE_BUILDINGS.forEach(([label]) => {
-    appendCell(row, 'th', label);
+  ESPIONAGE_BUILDINGS.forEach(([labelKey]) => {
+    appendCell(row, 'th', t(labelKey));
   });
 
   thead.appendChild(row);

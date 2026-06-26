@@ -3,6 +3,7 @@
 import { Buildings } from '../../const.js';
 import gameData from '../../helpers/gameData.js';
 import { appendCityCell, appendCityHeader } from './cityCell.js';
+import { t } from '../../../shared/i18n/index.js';
 
 const RESEARCH_TYPES = Object.freeze(['economy', 'knowledge', 'seafaring', 'military']);
 
@@ -17,7 +18,7 @@ function formatNumber(value) {
 
 function formatTime(timestamp) {
   const value = Number(timestamp);
-  if (!Number.isFinite(value) || value <= 0) return 'Never synced';
+  if (!Number.isFinite(value) || value <= 0) return t('empire.research.neverSynced');
   return new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
@@ -81,15 +82,15 @@ function renderSummary(root, research, cities) {
   const status = document.createElement('div');
   status.className = 'ika-research-status';
   status.textContent = research?.lastError
-    ? `Research scan warning: ${research.lastError}`
-    : `Synced ${formatTime(research?.updatedAt)}`;
+    ? t('empire.research.scanWarning', { error: research.lastError })
+    : t('empire.research.synced', { time: formatTime(research?.updatedAt) });
 
   const stats = document.createElement('div');
   stats.className = 'ika-research-stats';
   stats.append(
-    createStat('Scientists', formatNumber(Math.floor(totalScientists))),
-    createStat('Research / hour', formatNumber(Math.floor(totalResearch))),
-    createButton('Open Advisor', 'ika-research-action', openResearchAdvisor),
+    createStat(t('empire.research.scientists'), formatNumber(Math.floor(totalScientists))),
+    createStat(t('empire.research.researchPerHour'), formatNumber(Math.floor(totalResearch))),
+    createButton(t('empire.research.openAdvisor'), 'ika-research-action', openResearchAdvisor),
   );
 
   summary.append(status, stats);
@@ -112,11 +113,18 @@ function renderCategories(root, research) {
     card.className = 'ika-research-card';
     title.textContent = category.label || type;
     meta.className = 'ika-research-meta';
-    meta.textContent = `${formatNumber(category.completed)} completed · ${formatNumber(category.available)} available · ${formatNumber(category.total)} total`;
+    meta.textContent = [
+      t('empire.research.completed', { count: formatNumber(category.completed) }),
+      t('empire.research.available', { count: formatNumber(category.available) }),
+      t('empire.research.total', { count: formatNumber(category.total) }),
+    ].join(' · ');
     current.className = 'ika-research-current';
     current.textContent = category.current?.name
-      ? `Next: ${category.current.name}${category.current.futureLevel ? ` (${category.current.futureLevel})` : ''}`
-      : 'No available research detected.';
+      ? t('empire.research.next', {
+        name: category.current.name,
+        level: category.current.futureLevel ? ` (${category.current.futureLevel})` : '',
+      })
+      : t('empire.research.noAvailable');
 
     list.className = 'ika-research-items';
     (category.items || []).slice(0, 5).forEach((item) => {
@@ -148,7 +156,12 @@ function renderCityScientists(root, cities) {
 
   table.className = 'ika-table ika-research-city-table';
   appendCityHeader(head);
-  ['Academy', 'Scientists', 'Research / hour', 'Action'].forEach((label) => {
+  [
+    t('empire.research.academy'),
+    t('empire.research.scientists'),
+    t('empire.research.researchPerHour'),
+    t('empire.research.action'),
+  ].forEach((label) => {
     const th = document.createElement('th');
     th.textContent = label;
     head.appendChild(th);
@@ -167,7 +180,7 @@ function renderCityScientists(root, cities) {
     const actionCell = document.createElement('td');
     const position = getPosition(academy);
     if (position !== null) {
-      actionCell.appendChild(createButton('Academy', 'ika-research-action', () => openAcademy(city)));
+      actionCell.appendChild(createButton(t('empire.research.academy'), 'ika-research-action', () => openAcademy(city)));
     } else {
       actionCell.textContent = '-';
     }
