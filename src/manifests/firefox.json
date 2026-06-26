@@ -66,9 +66,11 @@
         "assets/icon/*",
         "content/*",
         "content/helpers/*",
+        "content/modules/alerts/*",
         "content/modules/cityWatcher/*",
         "content/modules/empire/*",
         "content/modules/militaryAlerts/*",
+        "content/modules/notificationAlerts/*",
         "content/modules/transport/*",
         "css/*",
         "tpl/*"
