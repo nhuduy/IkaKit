@@ -58,6 +58,17 @@ then keep each feature commit narrow and auditable.
 - `clear()` empties only the in-memory store and notifies listeners; it does not
   touch account storage or automation state.
 
+## Alerts Events UI Boundary
+
+- Add `Events` as the third tab inside the existing Alerts modal.
+- Render only active in-memory events from `gameEvents.getActiveEvents()`.
+- Filters are `all`, `military`, `townNews`, and `game`.
+- `Refresh` re-renders from the in-memory store.
+- `Copy` exports `gameEvents.toJSON()` as formatted JSON.
+- `Clear` calls `gameEvents.clear()`.
+- Do not add a floating launcher, automation monitor, construction locks,
+  route support cards, or builder/resource support controls.
+
 ## Verification
 
 - Build Chrome and Firefox bundles after each feature phase.
