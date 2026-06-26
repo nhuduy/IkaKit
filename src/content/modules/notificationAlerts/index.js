@@ -4,6 +4,7 @@
 import gameEvents from '../../helpers/gameEvents.js';
 import { sendRuntimeMessage } from '../../helpers/runtime.js';
 import storage from '../../helpers/storage.js';
+import { onLanguageChange, t } from '../../../shared/i18n/index.js';
 
 const STORAGE_KEY = 'ika_notification_alert_settings';
 const SCAN_DELAY = 500;
@@ -26,6 +27,7 @@ let detectedCount = 0;
 let lastScanRows = 0;
 let lastScanAlerts = 0;
 let recentAlerts = [];
+let unsubscribeLanguage = null;
 const seenKeys = new Set();
 
 function normalizeSettings(source) {
@@ -211,10 +213,10 @@ function toGameEvent(event, key, isTest = false) {
   const now = Date.now();
   const type = `townNews.${event.category}`;
   const title = event.category === 'espionage'
-    ? 'Town News: Espionage'
+    ? t('notificationAlerts.townNewsEspionage')
     : event.category === 'military'
-      ? 'Town News: Military'
-      : 'Town News';
+      ? t('notificationAlerts.townNewsMilitary')
+      : t('notificationAlerts.townNews');
 
   return {
     id: `${type}:${hashText(key)}`,
@@ -296,7 +298,7 @@ function isOwnUiMutation(mutations) {
 
 function formatTime(timestamp) {
   const value = Number(timestamp);
-  if (!Number.isFinite(value) || value <= 0) return 'Never';
+  if (!Number.isFinite(value) || value <= 0) return t('notificationAlerts.time.never');
   return new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
@@ -327,9 +329,9 @@ function createSettingsCheckbox(label, checked, onChange) {
 async function emitTestSpyNotification() {
   const event = {
     category: 'espionage',
-    location: document.querySelector('#js_cityBread')?.textContent || 'Current City',
+    location: document.querySelector('#js_cityBread')?.textContent || t('notificationAlerts.currentCity'),
     gameDateText: new Date().toLocaleString(),
-    subject: 'IkaKit test espionage notification.',
+    subject: t('notificationAlerts.testSubject'),
   };
   const key = `townNews:test:espionage:${Date.now()}`;
   detectedCount += 1;
@@ -339,10 +341,10 @@ async function emitTestSpyNotification() {
   try {
     const response = await sendRuntimeMessage({ __ikakit: 'notificationAlertTest' });
     lastTestResult = response?.ok
-      ? `Browser accepted test notification (${formatTime(Date.now())}).`
-      : `Notification test failed: ${response?.error || 'No response from background.'}`;
+      ? t('notificationAlerts.test.accepted', { time: formatTime(Date.now()) })
+      : t('notificationAlerts.test.failed', { error: response?.error || t('notificationAlerts.test.noResponse') });
   } catch (error) {
-    lastTestResult = `Notification test failed: ${String(error?.message || error)}`;
+    lastTestResult = t('notificationAlerts.test.failed', { error: String(error?.message || error) });
   }
 
   schedulePanelRender();
@@ -363,7 +365,7 @@ function renderRecentAlerts() {
   if (!recentAlerts.length) {
     const empty = document.createElement('div');
     empty.className = 'ika-alerts-empty';
-    empty.textContent = 'No Town News alerts detected yet.';
+    empty.textContent = t('notificationAlerts.empty');
     list.appendChild(empty);
     return list;
   }
@@ -389,7 +391,7 @@ function renderRecentAlerts() {
 
     meta.append(badge, location, date);
     message.textContent = event.subject;
-    foot.textContent = `detected ${formatTime(event.detectedAt)}`;
+    foot.textContent = t('notificationAlerts.detectedAt', { time: formatTime(event.detectedAt) });
     row.append(meta, message, foot);
     list.appendChild(row);
   });
@@ -404,13 +406,22 @@ function renderPanel(container) {
   const status = document.createElement('div');
   status.className = 'ika-alerts-status-card';
   const title = document.createElement('strong');
-  title.textContent = 'Notification Alert';
+  title.textContent = t('notificationAlerts.title');
   const message = document.createElement('span');
   message.textContent = settings.enabled
-    ? `${detectedCount} Town News alert${detectedCount === 1 ? '' : 's'} detected. Last scan ${formatTime(lastScanAt)}.`
-    : 'Notification Alert is disabled.';
+    ? t('notificationAlerts.status.detectedWithScan', {
+      count: detectedCount,
+      alertLabel: t(detectedCount === 1 ? 'notificationAlerts.status.alertSingular' : 'notificationAlerts.status.alertPlural'),
+      time: formatTime(lastScanAt),
+    })
+    : t('notificationAlerts.status.disabled');
   const scanMeta = document.createElement('small');
-  scanMeta.textContent = `${lastScanRows} Town News row${lastScanRows === 1 ? '' : 's'} seen, ${lastScanAlerts} new alert${lastScanAlerts === 1 ? '' : 's'} in last scan.`;
+  scanMeta.textContent = t('notificationAlerts.scanMeta', {
+    rows: lastScanRows,
+    rowLabel: t(lastScanRows === 1 ? 'notificationAlerts.scanMeta.rowSingular' : 'notificationAlerts.scanMeta.rowPlural'),
+    alerts: lastScanAlerts,
+    alertLabel: t(lastScanAlerts === 1 ? 'notificationAlerts.status.alertSingular' : 'notificationAlerts.status.alertPlural'),
+  });
   status.append(title, message, scanMeta);
   if (lastTestResult) {
     const testMeta = document.createElement('small');
@@ -421,16 +432,16 @@ function renderPanel(container) {
   const controls = document.createElement('div');
   controls.className = 'ika-alerts-settings-grid';
   controls.append(
-    createSettingsCheckbox('Enable Notification Alert', settings.enabled, (checked) => saveSettings({ ...settings, enabled: checked })),
-    createSettingsCheckbox('Desktop notifications', settings.notifications, (checked) => saveSettings({ ...settings, notifications: checked })),
+    createSettingsCheckbox(t('notificationAlerts.setting.enable'), settings.enabled, (checked) => saveSettings({ ...settings, enabled: checked })),
+    createSettingsCheckbox(t('notificationAlerts.setting.notifications'), settings.notifications, (checked) => saveSettings({ ...settings, notifications: checked })),
   );
 
   const actions = document.createElement('div');
   actions.className = 'ika-alerts-actions';
   actions.append(
-    createButton('Scan now', 'ika-alerts-button', scheduleScan),
-    createButton('Test spy notification', 'ika-alerts-button', emitTestSpyNotification),
-    createButton('Clear detected Town News', 'ika-alerts-button', clearDetectedTownNews),
+    createButton(t('notificationAlerts.action.scan'), 'ika-alerts-button', scheduleScan),
+    createButton(t('notificationAlerts.action.testSpy'), 'ika-alerts-button', emitTestSpyNotification),
+    createButton(t('notificationAlerts.action.clearTownNews'), 'ika-alerts-button', clearDetectedTownNews),
   );
 
   container.replaceChildren(status, controls, actions, renderRecentAlerts());
@@ -470,6 +481,11 @@ const notificationAlerts = Object.freeze({
       subtree: true,
       attributes: true,
     });
+    if (!unsubscribeLanguage) {
+      unsubscribeLanguage = onLanguageChange(() => {
+        if (panelContainer?.isConnected) renderPanel(panelContainer);
+      });
+    }
   },
 
   destroy() {
@@ -477,6 +493,8 @@ const notificationAlerts = Object.freeze({
     observer = null;
     clearTimeout(scanTimer);
     clearTimeout(panelRenderTimer);
+    unsubscribeLanguage?.();
+    unsubscribeLanguage = null;
     panelContainer = null;
   },
 
@@ -484,10 +502,13 @@ const notificationAlerts = Object.freeze({
 
   getStatus() {
     return {
-      title: 'Notification Alert',
+      title: t('notificationAlerts.title'),
       message: loaded && settings.enabled
-        ? `${detectedCount} Town News alert${detectedCount === 1 ? '' : 's'} detected.`
-        : 'Notification Alert is disabled.',
+        ? t('notificationAlerts.status.detected', {
+          count: detectedCount,
+          alertLabel: t(detectedCount === 1 ? 'notificationAlerts.status.alertSingular' : 'notificationAlerts.status.alertPlural'),
+        })
+        : t('notificationAlerts.status.disabled'),
     };
   },
 });
