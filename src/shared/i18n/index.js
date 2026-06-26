@@ -3,6 +3,12 @@ import { DEFAULT_LOCALE, LOCALES, MESSAGES } from './messages.js';
 export const LANGUAGE_STORAGE_KEY = 'ika_ui_language';
 
 const localeCodes = new Set(LOCALES.map((locale) => locale.code));
+const localeLabels = new Map(LOCALES.map((locale) => [locale.label.toLowerCase(), locale.code]));
+const legacyLocaleNames = new Map([
+  ['english', 'en'],
+  ['french', 'fr'],
+  ['vietnamese', 'vi'],
+]);
 const listeners = new Set();
 
 let currentLanguage = DEFAULT_LOCALE;
@@ -40,9 +46,43 @@ function withCallback(apiCall) {
   });
 }
 
-function normalizeLocale(locale) {
+function resolveLocale(locale) {
   const value = String(locale || '').trim();
-  return localeCodes.has(value) ? value : DEFAULT_LOCALE;
+  if (!value) return null;
+
+  const normalized = value.replace(/_/g, '-');
+  if (localeCodes.has(normalized)) return normalized;
+
+  const lowerCaseValue = value.toLowerCase();
+  const legacyLocale = localeLabels.get(lowerCaseValue) ?? legacyLocaleNames.get(lowerCaseValue);
+  if (legacyLocale) return legacyLocale;
+
+  const lowerCaseLocale = normalized.toLowerCase();
+  if (lowerCaseLocale === 'zh' || lowerCaseLocale.startsWith('zh-')) return 'zh-TW';
+
+  const baseLocale = normalized.split('-')[0];
+  return localeCodes.has(baseLocale) ? baseLocale : null;
+}
+
+function normalizeLocale(locale) {
+  return resolveLocale(locale) ?? DEFAULT_LOCALE;
+}
+
+function getBrowserLocales() {
+  if (typeof navigator === 'undefined') return [];
+
+  return [
+    ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+    navigator.language,
+  ].filter(Boolean);
+}
+
+function detectBrowserLocale() {
+  const browserLocale = getBrowserLocales()
+    .map((locale) => resolveLocale(locale))
+    .find(Boolean);
+
+  return browserLocale || DEFAULT_LOCALE;
 }
 
 async function storageGet(key) {
@@ -107,9 +147,16 @@ export async function loadLanguage() {
 
   try {
     const result = await storageGet(LANGUAGE_STORAGE_KEY);
-    applyLanguage(result[LANGUAGE_STORAGE_KEY], { notify: false });
+    const storedLanguage = result[LANGUAGE_STORAGE_KEY];
+    const nextLanguage = storedLanguage ? normalizeLocale(storedLanguage) : detectBrowserLocale();
+    applyLanguage(nextLanguage, { notify: false });
+
+    if (storedLanguage && storedLanguage !== nextLanguage) {
+      await storageSet({ [LANGUAGE_STORAGE_KEY]: nextLanguage });
+    }
   } catch (error) {
     console.warn('[IkaKit] Could not load UI language:', error);
+    applyLanguage(detectBrowserLocale(), { notify: false });
   }
 
   loaded = true;
