@@ -174,11 +174,11 @@ function formatDurationFromHours(hours) {
 
   let minutes = Math.max(value > 0 ? 1 : 0, Math.floor(value * 60));
   const units = [
-    ['y', 365 * 24 * 60],
-    ['mo', 30 * 24 * 60],
-    ['d', 24 * 60],
-    ['h', 60],
-    ['m', 1],
+    [t('common.duration.yearShort'), 365 * 24 * 60],
+    [t('common.duration.monthShort'), 30 * 24 * 60],
+    [t('common.duration.dayShort'), 24 * 60],
+    [t('common.duration.hourShort'), 60],
+    [t('common.duration.minuteShort'), 1],
   ];
   const parts = [];
 
