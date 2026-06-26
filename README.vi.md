@@ -40,8 +40,8 @@ Media demo dự kiến bổ sung tiếp:
 - Ảnh Alerts: `docs/assets/alerts.png`
 - Ảnh City Watcher: `docs/assets/city-watcher.png`
 
-Xem [docs/design.md](docs/design.md) trước khi thêm ảnh để tránh lộ tên tài
-khoản, server hoặc tọa độ.
+Xem [docs/design/README.md](docs/design/README.md) trước khi thêm ảnh để tránh
+lộ tên tài khoản, server hoặc tọa độ.
 
 ## Vì Sao Dùng IkaKit
 
@@ -121,7 +121,7 @@ automation/Auto Builder.
 - Viết module contract cho contributor.
 - Thiết kế extension point an toàn hơn cho tính năng tương lai.
 
-Chi tiết định hướng nằm trong [docs/design.md](docs/design.md).
+Chi tiết định hướng nằm trong [docs/design/README.md](docs/design/README.md).
 
 ## Issue Gợi Ý
 
@@ -245,9 +245,9 @@ automation.
 
 ## Tài Liệu Thiết Kế
 
-- [Product design](docs/design.md)
-- [Notification port audit](docs/notification-port-audit.md)
-- [Research and Events port boundary](docs/research-events-port-audit.md)
+- [Design documentation](docs/design/README.md)
+- [Notification port audit](docs/design/notification-port-audit.md)
+- [Research and Events port boundary](docs/design/research-events-port-audit.md)
 
 ## License
 

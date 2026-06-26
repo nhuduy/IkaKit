@@ -1,10 +1,4 @@
-# IkaKit Product Design
-
-This document describes the product direction for IkaKit. Port audit notes stay
-in separate files; this page is the high-level design reference for contributors
-and maintainers.
-
-## Product Promise
+# Product Direction
 
 IkaKit helps Ikariam players understand their empire faster without leaving the
 game screen. It should feel like a native companion panel: useful, lightweight,
@@ -15,38 +9,30 @@ and respectful of player control.
 - Active Ikariam players who manage several cities and need a quick overview of
   resources, buildings, research, military, and espionage.
 - Returning players who want fewer clicks for common checks and transports.
-- Contributors who want a clear boundary between quality-of-life tooling and
+- Contributors who need a clear boundary between quality-of-life tooling and
   automation-heavy features.
 
-## Why Use IkaKit
+## Product Promise
 
-- It brings empire-wide information into one in-game modal.
-- It reduces repetitive navigation between cities and advisors.
-- It keeps alerts visible through in-game panels, browser badges, and desktop
-  notifications.
-- It supports both Chrome/Chromium and Firefox from one WebExtension codebase.
-- It keeps advanced automation out of scope unless explicitly designed and
-  reviewed.
+- Bring empire-wide information into one in-game modal.
+- Reduce repetitive navigation between cities and advisors.
+- Keep important alerts visible through in-game panels, extension badges, and
+  desktop notifications.
+- Support Chrome/Chromium and Firefox from one WebExtension source tree.
+- Keep advanced automation out of scope unless it receives an explicit design
+  review.
 
 ## Core Experience
 
 ### Empire Manager
 
-The Empire Manager is the main information surface. It should remain easy to
-scan and should prioritize city-by-city comparison.
-
-Current tabs:
-
-- Resources
-- Buildings
-- Research
-- Military
-- Espionage
+The Empire Manager is the main information surface. It prioritizes city-by-city
+comparison across Resources, Buildings, Research, Military, and Espionage.
 
 Expected behavior:
 
 - Load from cached city data first when possible.
-- Refresh when Ikariam changes SPA views.
+- Refresh when Ikariam changes SPA views or the game data layer emits updates.
 - Let users jump directly to a city from city names.
 - Keep table columns stable enough for quick comparison.
 
@@ -59,7 +45,7 @@ Expected behavior:
 
 - Show level circles on buildings.
 - Show next-level cost and resource difference tooltips.
-- Allow direct upgrade only when enough resources are available.
+- Allow direct upgrade only when the selected city has enough resources.
 - Avoid hiding or breaking the native Ikariam interface.
 
 ### Alerts
@@ -82,8 +68,8 @@ Expected behavior:
 
 ### Transport Helpers
 
-Transport helpers should reduce form friction while leaving final decisions to
-the player.
+Transport helpers reduce form friction while leaving final decisions to the
+player.
 
 Expected behavior:
 
@@ -102,19 +88,22 @@ The current design intentionally excludes:
 - Construction automation and Auto Builder
 - Account-scoped automation state
 
-These exclusions keep IkaKit focused on visibility, reminders, and player-driven
-actions. Any future automation proposal should start with a design note, risk
-review, and clear user controls.
+These exclusions keep IkaKit focused on visibility, reminders, and
+player-driven actions. Any future automation proposal should start with a
+design note, risk review, and clear user controls.
 
 ## Demo And Media Plan
 
-The README should show the product quickly. The repo should include these media
-files once captured from a safe test account:
+The README should show the product quickly. Repository media belongs in
+`docs/assets/`.
+
+Planned or existing media:
 
 - `docs/assets/demo.gif`: 10-20 second flow showing Empire Manager, Alerts, and
   a quick transport helper.
 - `docs/assets/empire-manager.png`: screenshot of the main overview.
-- `docs/assets/alerts.png`: screenshot of Military Alerts, Town News, or Events.
+- `docs/assets/alerts.png`: screenshot of Military Alerts, Town News, or
+  Events.
 - `docs/assets/city-watcher.png`: screenshot of building level circles on the
   town map.
 
@@ -123,25 +112,7 @@ Media guidelines:
 - Blur or crop player names, coordinates, alliance data, and server details.
 - Prefer real UI screenshots over mockups.
 - Keep images lightweight enough for GitHub README loading.
-- Update README links only after the files exist.
-
-## Starter Issue Backlog
-
-Seed a few issues so new contributors can see where to help:
-
-- Good first issue: capture and add README demo screenshots.
-- Good first issue: add empty-state copy for Empire Manager tables.
-- Enhancement: improve notification permission diagnostics.
-- Enhancement: add a fleet scheduler design proposal for v2.2.
-- Bug: verify Alerts badge reset behavior after clearing all events.
-
-Suggested labels:
-
-- `good first issue`
-- `enhancement`
-- `bug`
-- `documentation`
-- `design`
+- Update README links only after files exist.
 
 ## Roadmap
 
@@ -173,4 +144,3 @@ Suggested labels:
   and exclusions.
 - Community-friendly documentation: README, roadmap, and starter issues should
   make the project feel active and approachable.
-

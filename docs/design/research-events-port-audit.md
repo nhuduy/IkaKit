@@ -55,8 +55,8 @@ then keep each feature commit narrow and auditable.
   function. `onChange(listener)` remains as a compatibility alias.
 - `getActiveEvents()` returns non-expired events sorted by expiry.
 - `toJSON()` returns clone-safe active events for copy/export.
-- `clear()` empties only the in-memory store and notifies listeners; it does not
-  touch account storage or automation state.
+- `clear()` empties only the in-memory store and notifies listeners; it does
+  not touch account storage or automation state.
 
 ## Alerts Events UI Boundary
 
@@ -66,8 +66,8 @@ then keep each feature commit narrow and auditable.
 - `Refresh` re-renders from the in-memory store.
 - `Copy` exports `gameEvents.toJSON()` as formatted JSON.
 - `Clear` calls `gameEvents.clear()`.
-- Do not add a floating launcher, automation monitor, construction locks,
-  route support cards, or builder/resource support controls.
+- Do not add a floating launcher, automation monitor, construction locks, route
+  support cards, or builder/resource support controls.
 
 ## Verification
 

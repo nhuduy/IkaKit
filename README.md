@@ -39,8 +39,8 @@ Future demo media planned for this README:
 - Alerts screenshot: `docs/assets/alerts.png`
 - City Watcher screenshot: `docs/assets/city-watcher.png`
 
-See [docs/design.md](docs/design.md) before adding more screenshots so account,
-server, and coordinate details are not exposed.
+See [docs/design/README.md](docs/design/README.md) before adding more
+screenshots so account, server, and coordinate details are not exposed.
 
 ## Why IkaKit
 
@@ -118,7 +118,7 @@ automation/Auto Builder features.
 - Contributor-facing module contract docs.
 - Safer extension points for future features.
 
-More context lives in [docs/design.md](docs/design.md).
+More context lives in [docs/design/README.md](docs/design/README.md).
 
 ## Starter Issues
 
@@ -242,9 +242,9 @@ automation state.
 
 ## Design Docs
 
-- [Product design](docs/design.md)
-- [Notification port audit](docs/notification-port-audit.md)
-- [Research and Events port boundary](docs/research-events-port-audit.md)
+- [Design documentation](docs/design/README.md)
+- [Notification port audit](docs/design/notification-port-audit.md)
+- [Research and Events port boundary](docs/design/research-events-port-audit.md)
 
 ## License
 
