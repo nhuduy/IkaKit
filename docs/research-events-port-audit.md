@@ -79,3 +79,12 @@ then keep each feature commit narrow and auditable.
 - Static audit found no runtime imports or manifest entries for automation
   modules. The only `IkaLabs` and automation-scope strings are this audit
   document's boundary notes.
+
+## Phase 2 Verification
+
+- `npm run build:chrome` passed.
+- `npm run build:firefox` passed.
+- Military Alerts still emits through `gameEvents.emitMany(...)`.
+- Town News Notification Alert still emits through `gameEvents.emit(...)`.
+- The helper still relays new active events to the background with
+  `__ikakit: 'gameEvents'`.
