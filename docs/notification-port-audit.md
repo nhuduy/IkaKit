@@ -111,3 +111,13 @@ initialize automation modules.
 - Alerts UI wires `Alerts` button/FAB, tab switching, and `ika-alerts-modal`.
 - Alerts UI contains no IkaLabs or automation module references.
 - Manifest web-accessible resource additions are intentionally left for Phase 6.
+
+## Phase 6 Final Verification
+
+- `npm run build:chrome` passed.
+- `npm run build:firefox` passed.
+- Manifests expose the new Alerts and Notification Alert module paths while
+  keeping IkaKit metadata.
+- Source and README files contain no Automation Center, auto-send resource, route
+  schedule, construction automation, or IkaLabs references.
+- The port is represented by 18 commits on `main`.
