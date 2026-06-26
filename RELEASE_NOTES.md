@@ -19,6 +19,12 @@ Release date: 2026-06-26
 - Chrome and Firefox production extension builds were generated from source.
 - Generated build output was validated for manifest version, required runtime files, icons, locales, content scripts, and the browser polyfill.
 
+## Release Assets
+
+- `ikakit-chrome-v1.0.1.zip`
+- `ikakit-firefox-v1.0.1.zip`
+- `SHA256SUMS.txt`
+
 ## Recent Commits
 
 - `2bb42ee` Update extension icon
