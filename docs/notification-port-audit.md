@@ -32,3 +32,10 @@ Each phase is implemented as exactly three commits:
 1. Preparation or audit commit.
 2. Implementation commit.
 3. Verification or docs commit.
+
+## Phase 1 Verification
+
+- `npm run build:chrome` passed.
+- `npm run build:firefox` passed.
+- No Automation Center, auto-send resource, route schedule, or construction
+  module references were added to IkaKit entrypoints, manifests, or modules.
