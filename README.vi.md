@@ -19,6 +19,11 @@ Mozilla Firefox.
 
 - Tài liệu tiếng Anh đầy đủ: [README.md](README.md)
 - Tài liệu tiếng Việt đầy đủ: [README.vi.md](README.vi.md)
+- Bản tóm tắt cộng đồng: [繁體中文](README.zh-Hant.md),
+  [Deutsch](README.de.md), [Français](README.fr.md),
+  [Русский](README.ru.md), [Ελληνικά](README.el.md),
+  [Polski](README.pl.md), [Español](README.es.md) và
+  [Türkçe](README.tr.md)
 
 README tiếng Anh và tiếng Việt được duy trì như hai bản tài liệu đầy đủ. Các
 bản dịch ngôn ngữ khác trong tương lai nên là bản tóm tắt ngắn cho cộng đồng,

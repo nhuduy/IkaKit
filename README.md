@@ -18,6 +18,11 @@ Jing Browser), as well as Mozilla Firefox.
 
 - Full English documentation: [README.md](README.md)
 - Full Vietnamese documentation: [README.vi.md](README.vi.md)
+- Community summaries: [繁體中文](README.zh-Hant.md),
+  [Deutsch](README.de.md), [Français](README.fr.md),
+  [Русский](README.ru.md), [Ελληνικά](README.el.md),
+  [Polski](README.pl.md), [Español](README.es.md), and
+  [Türkçe](README.tr.md)
 
 English and Vietnamese README files are maintained as full documentation.
 Future translations should be shorter community summaries with Installation,
