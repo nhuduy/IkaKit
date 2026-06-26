@@ -66,6 +66,7 @@
         "content/modules/militaryAlerts/*",
         "content/modules/notificationAlerts/*",
         "content/modules/transport/*",
+        "shared/i18n/*",
         "css/*",
         "tpl/*"
       ]
