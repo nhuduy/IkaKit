@@ -1534,6 +1534,171 @@
   font-size: 10px;
 }
 
+.ika-game-event-panel.ika-game-event-panel-embedded {
+  display: grid;
+  gap: 8px;
+  color: #4b2d12;
+  font-size: 11px;
+}
+
+.ika-game-event-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px;
+  background: #fffaf0;
+  border: 1px solid #d2a55f;
+  border-radius: 4px;
+}
+
+.ika-game-event-header strong {
+  color: #542c0f;
+  font-size: 12px;
+}
+
+.ika-game-event-header span,
+.ika-game-event-status {
+  color: #75532c;
+}
+
+.ika-game-event-actions,
+.ika-game-event-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.ika-game-event-button,
+.ika-game-event-filter {
+  min-height: 22px;
+  padding: 3px 8px;
+  color: #542c0f;
+  background: #fff2c7;
+  border: 1px solid #d2a55f;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ika-game-event-button:hover,
+.ika-game-event-button:focus,
+.ika-game-event-filter:hover,
+.ika-game-event-filter:focus,
+.ika-game-event-filter-active {
+  background: #f0d38a;
+  outline: none;
+}
+
+.ika-game-event-body,
+.ika-game-event-list {
+  display: grid;
+  gap: 7px;
+}
+
+.ika-game-event-group {
+  display: grid;
+  gap: 5px;
+}
+
+.ika-game-event-group h3 {
+  margin: 2px 0 0;
+  color: #542c0f;
+  font-size: 11px;
+}
+
+.ika-game-event-row {
+  display: grid;
+  gap: 4px;
+  padding: 7px 8px;
+  background: #fffaf0;
+  border: 1px solid #d2a55f;
+  border-left-width: 4px;
+  border-radius: 4px;
+}
+
+.ika-game-event-critical {
+  border-left-color: #9a2f1f;
+}
+
+.ika-game-event-high {
+  border-left-color: #a8511f;
+}
+
+.ika-game-event-medium {
+  border-left-color: #8a681d;
+}
+
+.ika-game-event-low {
+  border-left-color: #627a27;
+}
+
+.ika-game-event-info {
+  border-left-color: #627a27;
+}
+
+.ika-game-event-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  color: #542c0f;
+}
+
+.ika-game-event-meta strong {
+  font-weight: 700;
+}
+
+.ika-game-event-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 18px;
+  padding: 1px 6px;
+  color: #fff8dc;
+  background: #627a27;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ika-game-event-critical .ika-game-event-badge {
+  background: #9a2f1f;
+}
+
+.ika-game-event-high .ika-game-event-badge {
+  background: #a8511f;
+}
+
+.ika-game-event-medium .ika-game-event-badge {
+  background: #8a681d;
+}
+
+.ika-game-event-message {
+  color: #4b2d12;
+}
+
+.ika-game-event-foot {
+  color: #75532c;
+  font-size: 10px;
+}
+
+.ika-game-event-empty {
+  padding: 14px;
+  color: #75532c;
+  background: #fffaf0;
+  border: 1px dashed #d2a55f;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.ika-game-event-copy-buffer {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+}
+
 .ika-research {
   display: flex;
   flex-direction: column;

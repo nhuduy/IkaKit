@@ -4,6 +4,7 @@ import storage from '../../helpers/storage.js';
 import { getRuntimeUrl } from '../../helpers/runtime.js';
 import militaryAlerts from '../militaryAlerts/index.js';
 import notificationAlerts from '../notificationAlerts/index.js';
+import alertEvents from './events.js';
 
 const STORAGE_KEY = 'ika_alerts_active_tab';
 const POSITION_STORAGE_KEY = 'ika_alerts_position';
@@ -12,6 +13,7 @@ const BUTTON_ID = 'ika-alerts-btn';
 const TABS = Object.freeze([
   { id: 'military', label: 'Military Alerts', module: militaryAlerts },
   { id: 'townNews', label: 'Town News', module: notificationAlerts },
+  { id: 'events', label: 'Events', module: alertEvents },
 ]);
 
 let modal = null;
