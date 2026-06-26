@@ -39,3 +39,16 @@ Each phase is implemented as exactly three commits:
 - `npm run build:firefox` passed.
 - No Automation Center, auto-send resource, route schedule, or construction
   module references were added to IkaKit entrypoints, manifests, or modules.
+
+## Phase 2 Background Contracts
+
+The notification background router must support these content-script messages:
+
+- `militaryEvents`: existing backward-compatible incoming hostile event path.
+- `gameEvents`: minimal event relay used by Town News and upgraded Military
+  Alerts, without porting the Game Event Monitor UI.
+- `notificationAlertTest`: diagnostic desktop notification for the Alerts UI.
+- `clearMilitaryAlertTests`: optional cleanup for test Military Alerts.
+
+The router must keep all visible strings branded as IkaKit and must not import or
+initialize automation modules.
