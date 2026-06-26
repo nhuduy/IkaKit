@@ -274,10 +274,17 @@ function handleDetectedEvents(events) {
 }
 
 function scheduleScan() {
-  clearTimeout(scanTimer);
+  if (scanTimer) return;
   scanTimer = setTimeout(() => {
+    scanTimer = null;
     handleDetectedEvents(parseDocument(document));
   }, SCAN_DELAY);
+}
+
+function scanNow() {
+  clearTimeout(scanTimer);
+  scanTimer = null;
+  handleDetectedEvents(parseDocument(document));
 }
 
 function mutationElement(target) {
@@ -439,7 +446,7 @@ function renderPanel(container) {
   const actions = document.createElement('div');
   actions.className = 'ika-alerts-actions';
   actions.append(
-    createButton(t('notificationAlerts.action.scan'), 'ika-alerts-button', scheduleScan),
+    createButton(t('notificationAlerts.action.scan'), 'ika-alerts-button', scanNow),
     createButton(t('notificationAlerts.action.testSpy'), 'ika-alerts-button', emitTestSpyNotification),
     createButton(t('notificationAlerts.action.clearTownNews'), 'ika-alerts-button', clearDetectedTownNews),
   );

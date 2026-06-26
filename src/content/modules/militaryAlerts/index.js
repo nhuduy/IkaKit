@@ -663,7 +663,7 @@ function renderPanel(container) {
   scan.textContent = t('militaryAlerts.action.scan');
   scan.addEventListener('click', () => {
     requestAdvisorScan();
-    scheduleScan();
+    scanNow();
     renderPanel(container);
   });
   actions.appendChild(scan);
@@ -717,10 +717,17 @@ function clearTestEvents() {
 }
 
 function scheduleScan() {
-  clearTimeout(scanTimer);
+  if (scanTimer) return;
   scanTimer = setTimeout(() => {
+    scanTimer = null;
     handleDetectedEvents(parseDocument(document));
   }, SCAN_DELAY);
+}
+
+function scanNow() {
+  clearTimeout(scanTimer);
+  scanTimer = null;
+  handleDetectedEvents(parseDocument(document));
 }
 
 function requestAdvisorScan() {
