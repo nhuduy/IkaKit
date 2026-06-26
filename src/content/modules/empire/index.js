@@ -22,6 +22,13 @@ const TAB_LABEL_KEYS = {
   military: 'empire.tab.military',
   espionage: 'empire.tab.espionage',
 };
+const TAB_MODULE_IMPORTS = {
+  resources: () => import('./resources.js'),
+  buildings: () => import('./buildings.js'),
+  research: () => import('./research.js'),
+  military: () => import('./military.js'),
+  espionage: () => import('./espionage.js'),
+};
 
 let _modal = null;
 let _activeTab = 'resources';
@@ -489,7 +496,10 @@ async function _switchTab(tab) {
   });
 
   try {
-    const { default: mod } = await import('./' + tab + '.js');
+    const loadModule = TAB_MODULE_IMPORTS[tab];
+    if (!loadModule) throw new Error(`Unknown empire tab: ${tab}`);
+
+    const { default: mod } = await loadModule();
     _activeModule = mod;
     mod.render(content, gameData.getCities());
     _unsubscribeGameData = gameData.onChange((data) => {
