@@ -95,3 +95,11 @@ initialize automation modules.
   `MAX_RECENT`, and routes test notifications through `notificationAlertTest`.
 - Town News mutation scanning ignores IkaKit alert UI mutations and contains no
   IkaLabs or automation module references.
+
+## Phase 5 Standalone Alerts UI
+
+- Add a standalone `Alerts` menu slot or fallback FAB.
+- Host exactly two tabs for this port: Military Alerts and Town News.
+- Use `renderPanel` from the two alert modules and avoid Automation Center.
+- Keep modal selectors under `ika-alerts-*` so Town News can ignore its own UI
+  mutations.
