@@ -5,18 +5,31 @@ triển để bổ sung công cụ quản lý đế chế, cảnh báo và các 
 ngay trong giao diện game, giúp người chơi xem tình hình thành phố nhanh hơn và
 giảm các thao tác lặp lại.
 
+IkaKit lấy cảm hứng từ các ý tưởng phía sau IkaEasy v3, nhưng được viết lại từ
+đầu với trọng tâm là kiến trúc module, khả năng tương thích đa trình duyệt, khả
+năng mở rộng và bảo trì lâu dài.
+
 Extension hỗ trợ Chrome/Chromium và Firefox thông qua WebExtension Manifest V3,
-content script, background script và `webextension-polyfill`.
+content script, background script và `webextension-polyfill`. Extension đã được
+test trên nhiều trình duyệt nền Chromium, gồm Google Chrome, Microsoft Edge,
+Brave, Opera, Vivaldi, SRWare Iron và Cốc Cốc (Gang Jing Browser), cũng như
+Mozilla Firefox.
 
 Tài liệu tiếng Anh: [README.md](README.md)
 
 ## Demo
 
-Media demo đã được đưa vào kế hoạch nhưng chưa commit vào repo. Tài liệu thiết
-kế đang theo dõi các file cần có và quy tắc chụp:
+### Empire Manager
+
+![Demo IkaKit Empire Manager](docs/assets/empire-manager.png)
+
+Ảnh demo đã được chỉnh sửa trước khi công khai: tọa độ, tên town và một vài
+thông số trong game đã được thay đổi để không ảnh hưởng tới player đã cho mượn
+account phục vụ quá trình làm và test extension này.
+
+Media demo dự kiến bổ sung tiếp:
 
 - GIF demo: `docs/assets/demo.gif`
-- Ảnh Empire Manager: `docs/assets/empire-manager.png`
 - Ảnh Alerts: `docs/assets/alerts.png`
 - Ảnh City Watcher: `docs/assets/city-watcher.png`
 
@@ -87,7 +100,7 @@ automation/Auto Builder.
 
 - Thiết kế và prototype Fleet scheduler.
 - Kiểm tra tốt hơn hành vi reset badge Alerts.
-- Thêm GIF demo và ảnh chụp vào README.
+- Bổ sung thêm GIF demo và ảnh chụp vào README.
 
 ### v2.3
 

@@ -4,22 +4,35 @@ IkaKit is a community-built browser extension for Ikariam. It adds empire
 management, alerting, and quality-of-life tools directly inside the game
 interface so players can understand their cities faster and click less.
 
+IkaKit is inspired by the ideas behind IkaEasy v3, but it is a ground-up
+reimplementation focused on a modular architecture, cross-browser
+compatibility, extensibility, and long-term maintainability.
+
 The extension supports Chrome/Chromium and Firefox through WebExtension
 Manifest V3, content scripts, a background script, and `webextension-polyfill`.
+It has been tested on multiple Chromium-based browsers, including Google
+Chrome, Microsoft Edge, Brave, Opera, Vivaldi, SRWare Iron, and Cốc Cốc (Gang
+Jing Browser), as well as Mozilla Firefox.
 
 Vietnamese documentation: [README.vi.md](README.vi.md)
 
 ## Demo
 
-Demo media is planned but not yet committed. The design document tracks the
-expected files and capture rules:
+### Empire Manager
+
+![IkaKit Empire Manager demo](docs/assets/empire-manager.png)
+
+The demo image has been sanitized before publishing: coordinates, town names,
+and selected in-game values were edited so the account owner who helped test
+the extension is not exposed.
+
+Future demo media planned for this README:
 
 - GIF demo: `docs/assets/demo.gif`
-- Empire Manager screenshot: `docs/assets/empire-manager.png`
 - Alerts screenshot: `docs/assets/alerts.png`
 - City Watcher screenshot: `docs/assets/city-watcher.png`
 
-See [docs/design.md](docs/design.md) before adding screenshots so account,
+See [docs/design.md](docs/design.md) before adding more screenshots so account,
 server, and coordinate details are not exposed.
 
 ## Why IkaKit
@@ -84,7 +97,7 @@ automation/Auto Builder features.
 
 - Fleet scheduler design and prototype.
 - Better Alerts badge reset checks.
-- README demo GIF and screenshots.
+- More README demo GIFs and screenshots.
 
 ### v2.3
 
