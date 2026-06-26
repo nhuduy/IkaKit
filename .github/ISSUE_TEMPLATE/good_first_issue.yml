@@ -1,0 +1,30 @@
+name: Good first issue
+description: Small contributor-friendly task.
+title: "[Good first issue]: "
+labels: ["good first issue"]
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: Task
+      description: Describe the small, self-contained change.
+      placeholder: Capture README screenshots for Empire Manager and Alerts.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List what needs to be true when the issue is done.
+      placeholder: |
+        - Screenshot does not expose account details.
+        - README links point to committed files.
+    validations:
+      required: true
+  - type: textarea
+    id: pointers
+    attributes:
+      label: Helpful pointers
+      description: Link relevant files or docs.
+      placeholder: docs/design.md, README.md
+

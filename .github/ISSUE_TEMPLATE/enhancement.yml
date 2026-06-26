@@ -1,0 +1,26 @@
+name: Enhancement
+description: Suggest an improvement to an existing IkaKit feature.
+title: "[Enhancement]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What should be improved?
+      description: Describe the current friction or limitation.
+      placeholder: The notification permission flow is hard to diagnose because...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed improvement
+      description: Describe the behavior or UI you would like to see.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope notes
+      description: Mention affected modules, browsers, or design constraints.
+

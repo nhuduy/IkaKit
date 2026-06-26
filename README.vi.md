@@ -1,13 +1,39 @@
 # IkaKit
 
 IkaKit là tiện ích mở rộng trình duyệt dành cho Ikariam, được cộng đồng phát
-triển để bổ sung công cụ quản lý đế chế và cải thiện trải nghiệm chơi hằng ngày
-ngay trong giao diện game.
+triển để bổ sung công cụ quản lý đế chế, cảnh báo và các cải thiện trải nghiệm
+ngay trong giao diện game, giúp người chơi xem tình hình thành phố nhanh hơn và
+giảm các thao tác lặp lại.
 
 Extension hỗ trợ Chrome/Chromium và Firefox thông qua WebExtension Manifest V3,
 content script, background script và `webextension-polyfill`.
 
 Tài liệu tiếng Anh: [README.md](README.md)
+
+## Demo
+
+Media demo đã được đưa vào kế hoạch nhưng chưa commit vào repo. Tài liệu thiết
+kế đang theo dõi các file cần có và quy tắc chụp:
+
+- GIF demo: `docs/assets/demo.gif`
+- Ảnh Empire Manager: `docs/assets/empire-manager.png`
+- Ảnh Alerts: `docs/assets/alerts.png`
+- Ảnh City Watcher: `docs/assets/city-watcher.png`
+
+Xem [docs/design.md](docs/design.md) trước khi thêm ảnh để tránh lộ tên tài
+khoản, server hoặc tọa độ.
+
+## Vì Sao Dùng IkaKit
+
+- Xem tài nguyên, công trình, nghiên cứu, quân sự và gián điệp của nhiều thành
+  phố trong một Empire Manager ngay trong game.
+- Chuyển nhanh giữa thành phố và các luồng thao tác thường dùng.
+- Theo dõi trạng thái nâng cấp công trình trực tiếp trên town map.
+- Nhận cảnh báo Military và Town News qua UI trong game, badge extension và
+  desktop notification.
+- Build chung một codebase WebExtension cho Chrome/Chromium và Firefox.
+- Giữ phạm vi hiện tại tập trung vào hiển thị thông tin và thao tác do người
+  chơi chủ động, không chạy automation nền.
 
 ## Cảnh Báo
 
@@ -26,39 +52,67 @@ hiện tại và cân nhắc kỹ.
 
 ## Tính năng
 
-README hiện mô tả 16 nhóm chức năng:
-
-1. Empire Manager dạng modal được inject trực tiếp vào giao diện Ikariam.
-2. Tổng quan Resources theo từng thành phố, gồm tài nguyên, nhà ở, nghiên cứu
-   và tham nhũng.
-3. Tổng quan Buildings theo từng thành phố, gồm cấp công trình, trạng thái nâng
-   cấp và chi phí cấp tiếp theo.
-4. Tổng quan Military theo từng thành phố, gồm lục quân và hải quân.
-5. Tổng quan Espionage theo từng thành phố, gồm cấp nhà gián điệp, học viện và
-   xưởng.
-6. Bộ quét dữ liệu thành phố để thu thập chi tiết thành phố từ giao diện game.
-7. Cache dữ liệu thành phố cục bộ để hiển thị tổng quan đế chế nhanh hơn.
-8. Nút thao tác nhanh để chuyển tài nguyên, điều quân và điều hạm đội.
-9. Nút chọn nhanh số lượng tài nguyên trong form vận chuyển.
-10. Bấm vào tên thành phố trong Empire Manager để chuyển thẳng tới thành phố đó.
-11. Bộ theo dõi nâng cấp công trình trên màn hình thành phố: hiển thị vòng tròn
-    cấp công trình, tooltip chi phí/chênh lệch tài nguyên và cho phép nâng cấp
-    trực tiếp khi thành phố đủ tài nguyên.
-12. Theo dõi điều hướng SPA để UI tự cập nhật khi Ikariam đổi view.
-13. Panel Alerts để cấu hình Military Alerts, mức độ nguy hiểm incoming, panel
-    cảnh báo trong game, desktop notification, badge count và reminder.
-14. Town News Notification Alert để phát hiện báo cáo gián điệp/quân sự đã xuất
-    hiện trong Town News, kèm nút scan, clear và test notification.
-15. Tab Research trong Empire Manager với đồng bộ Research Advisor, tổng quan
-    nhóm nghiên cứu, bảng academy/scientist và nút mở Research Advisor/Academy.
-16. Tab Events trong Alerts để xem sự kiện Military, Town News và game đang
-    active, kèm filter, copy, refresh và clear.
-
-Extension cũng có metadata bằng tiếng Anh và tiếng Việt.
+- Empire Manager dạng modal được inject trực tiếp vào giao diện Ikariam.
+- Tổng quan Resources theo từng thành phố, gồm tài nguyên, nhà ở, nghiên cứu và
+  tham nhũng.
+- Tổng quan Buildings gồm cấp công trình, trạng thái nâng cấp, chi phí cấp tiếp
+  theo và chênh lệch tài nguyên.
+- Tab Research với đồng bộ Research Advisor, tổng quan nhóm nghiên cứu, bảng
+  academy/scientist và nút mở Research Advisor/Academy.
+- Tổng quan Military theo từng thành phố, gồm lục quân và hải quân.
+- Tổng quan Espionage theo từng thành phố, gồm cấp nhà gián điệp, học viện và
+  xưởng.
+- Bộ quét dữ liệu thành phố và cache cục bộ để hiển thị tổng quan nhanh hơn.
+- Nút thao tác nhanh để chuyển tài nguyên, điều quân và điều hạm đội.
+- Nút chọn nhanh số lượng tài nguyên trong form vận chuyển.
+- Bấm vào tên thành phố trong Empire Manager để chuyển thẳng tới thành phố đó.
+- Bộ theo dõi nâng cấp công trình trên town map với vòng tròn cấp công trình,
+  tooltip chi phí/chênh lệch và nâng cấp trực tiếp khi thành phố đủ tài nguyên.
+- Theo dõi điều hướng SPA để UI tự cập nhật khi Ikariam đổi view.
+- Panel Alerts để cấu hình Military Alerts, mức độ nguy hiểm incoming, panel
+  cảnh báo trong game, desktop notification, badge count và reminder.
+- Town News Notification Alert để phát hiện báo cáo gián điệp/quân sự đã xuất
+  hiện trong Town News, kèm nút scan, clear và test notification.
+- Tab Events trong Alerts để xem sự kiện Military, Town News và game đang
+  active, kèm filter, copy, refresh và clear.
+- Metadata extension bằng tiếng Anh và tiếng Việt.
 
 Bản port notification này không bao gồm Automation Center, Route Schedule,
 auto-send resource, floating game-event launcher hoặc construction
 automation/Auto Builder.
+
+## Roadmap
+
+### v2.2
+
+- Thiết kế và prototype Fleet scheduler.
+- Kiểm tra tốt hơn hành vi reset badge Alerts.
+- Thêm GIF demo và ảnh chụp vào README.
+
+### v2.3
+
+- Cải thiện hướng dẫn chẩn đoán quyền notification.
+- Làm mượt filter và export trong Events.
+- Cải thiện empty state khi thiếu dữ liệu thành phố.
+
+### v2.4
+
+- Khảo sát Plugin API cho module tùy chọn.
+- Viết module contract cho contributor.
+- Thiết kế extension point an toàn hơn cho tính năng tương lai.
+
+Chi tiết định hướng nằm trong [docs/design.md](docs/design.md).
+
+## Issue Gợi Ý
+
+Nếu GitHub issue list còn trống, nên tạo trước vài task dễ tiếp cận để repo nhìn
+đang được chăm sóc và contributor biết có thể bắt đầu từ đâu:
+
+- `good first issue`: Chụp và thêm ảnh/GIF demo cho README.
+- `good first issue`: Thêm empty-state copy cho bảng Empire Manager.
+- `enhancement`: Cải thiện chẩn đoán quyền notification.
+- `enhancement`: Viết thiết kế Fleet scheduler cho v2.2.
+- `bug`: Kiểm tra badge Alerts có reset đúng sau khi clear toàn bộ event không.
 
 ## Yêu cầu
 
@@ -168,6 +222,12 @@ notification của trình duyệt và hệ điều hành cho extension.
 Tab Alerts Events dùng store active event trong bộ nhớ. Tab này hiển thị sự
 kiện được phát hiện trong phiên content script hiện tại và không lưu trạng thái
 automation.
+
+## Tài Liệu Thiết Kế
+
+- [Product design](docs/design.md)
+- [Notification port audit](docs/notification-port-audit.md)
+- [Research and Events port boundary](docs/research-events-port-audit.md)
 
 ## License
 

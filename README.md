@@ -1,13 +1,38 @@
 # IkaKit
 
 IkaKit is a community-built browser extension for Ikariam. It adds empire
-management tools and small quality-of-life improvements directly inside the
-game interface.
+management, alerting, and quality-of-life tools directly inside the game
+interface so players can understand their cities faster and click less.
 
 The extension supports Chrome/Chromium and Firefox through WebExtension
 Manifest V3, content scripts, a background script, and `webextension-polyfill`.
 
 Vietnamese documentation: [README.vi.md](README.vi.md)
+
+## Demo
+
+Demo media is planned but not yet committed. The design document tracks the
+expected files and capture rules:
+
+- GIF demo: `docs/assets/demo.gif`
+- Empire Manager screenshot: `docs/assets/empire-manager.png`
+- Alerts screenshot: `docs/assets/alerts.png`
+- City Watcher screenshot: `docs/assets/city-watcher.png`
+
+See [docs/design.md](docs/design.md) before adding screenshots so account,
+server, and coordinate details are not exposed.
+
+## Why IkaKit
+
+- See resources, buildings, research, military, and espionage across cities in
+  one in-game Empire Manager.
+- Jump between cities and common game flows with fewer clicks.
+- Track building upgrade readiness directly on the town map.
+- Receive Military and Town News alerts through in-game UI, extension badge
+  count, and desktop notifications.
+- Build once for Chrome/Chromium and Firefox from the same WebExtension source.
+- Keep the current product focused on visibility and player-driven actions
+  instead of background automation.
 
 ## Warning
 
@@ -25,41 +50,66 @@ review the current game rules and decide carefully.
 
 ## Features
 
-The README currently documents 16 feature areas:
-
-1. Empire Manager modal injected directly into the Ikariam interface.
-2. Resources overview by city, including goods, housing, research, and
-   corruption.
-3. Buildings overview by city, including building levels, upgrade state, and
-   next-level costs.
-4. Military overview by city, including land units and ships.
-5. Espionage overview by city, including hideout, academy, and workshop levels.
-6. City data scanner for collecting city details from the game interface.
-7. Local city data cache for faster empire overview rendering.
-8. Quick action buttons for resource transport, army deployment, and fleet
-   deployment.
-9. Quick amount buttons on transport forms.
-10. Click a city name in Empire Manager to jump directly to that city.
-11. Construction Upgrade Watcher on the town map: shows per-building level
-    circles, next-level cost/difference tooltips, and one-click upgrade when the
-    city has enough resources.
-12. SPA navigation tracking so the UI can refresh when Ikariam changes views.
-13. Alerts panel with Military Alerts settings, incoming hostile severity,
-    in-game warning panel, desktop notifications, extension badge count, and
-    reminder controls.
-14. Town News Notification Alert for detecting espionage and military reports
-    that have already appeared in rendered Town News, with scan, clear, and test
-    notification controls.
-15. Research tab in Empire Manager with advisor sync, category overview,
-    academy/scientist table, and direct Research Advisor/Academy actions.
-16. Events tab inside Alerts for active Military, Town News, and game events,
-    with filter, copy, refresh, and clear controls.
-
-The extension also includes English and Vietnamese extension metadata.
+- Empire Manager modal injected directly into the Ikariam interface.
+- City-by-city Resources overview for goods, housing, research, and corruption.
+- Buildings overview with levels, upgrade state, next-level costs, and resource
+  differences.
+- Research tab with advisor sync, category overview, academy/scientist table,
+  and direct Research Advisor/Academy actions.
+- Military overview for land units and ships.
+- Espionage overview for hideout, academy, and workshop levels.
+- City data scanner and local cache for faster overview rendering.
+- Quick actions for resource transport, army deployment, and fleet deployment.
+- Quick amount buttons on transport forms.
+- Clickable city names that jump directly to the selected city.
+- Town-map Construction Upgrade Watcher with level circles, cost tooltips, and
+  one-click upgrade when the city has enough resources.
+- SPA navigation tracking so IkaKit refreshes when Ikariam changes views.
+- Alerts panel with Military Alerts settings, incoming hostile severity,
+  in-game warning panel, desktop notifications, extension badge count, and
+  reminder controls.
+- Town News Notification Alert for rendered espionage and military reports, with
+  scan, clear, and test notification controls.
+- Events tab inside Alerts for active Military, Town News, and game events, with
+  filter, copy, refresh, and clear controls.
+- English and Vietnamese extension metadata.
 
 This notification port does not include Automation Center, Route Schedule,
 auto-send resource flows, floating game-event launchers, or construction
 automation/Auto Builder features.
+
+## Roadmap
+
+### v2.2
+
+- Fleet scheduler design and prototype.
+- Better Alerts badge reset checks.
+- README demo GIF and screenshots.
+
+### v2.3
+
+- Better notification diagnostics and permission guidance.
+- More polished Events filtering and export.
+- Improved empty states for missing city data.
+
+### v2.4
+
+- Plugin API exploration for optional modules.
+- Contributor-facing module contract docs.
+- Safer extension points for future features.
+
+More context lives in [docs/design.md](docs/design.md).
+
+## Starter Issues
+
+If the GitHub issue list is empty, seed a few approachable tasks so the project
+looks active and contributors know where to begin:
+
+- `good first issue`: Capture and add README demo screenshots.
+- `good first issue`: Add empty-state copy for Empire Manager tables.
+- `enhancement`: Improve notification permission diagnostics.
+- `enhancement`: Write the fleet scheduler design proposal for v2.2.
+- `bug`: Verify Alerts badge reset behavior after clearing all events.
 
 ## Requirements
 
@@ -169,6 +219,12 @@ system notification permissions for the extension.
 The Alerts Events tab uses an in-memory active event store. It shows events
 detected during the current content-script session and does not persist
 automation state.
+
+## Design Docs
+
+- [Product design](docs/design.md)
+- [Notification port audit](docs/notification-port-audit.md)
+- [Research and Events port boundary](docs/research-events-port-audit.md)
 
 ## License
 

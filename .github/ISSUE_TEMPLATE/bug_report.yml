@@ -1,0 +1,40 @@
+name: Bug report
+description: Report something that is not working as expected.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected instead.
+      placeholder: I opened Alerts and...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the smallest set of steps that trigger the issue.
+      placeholder: |
+        1. Go to...
+        2. Click...
+        3. See...
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options:
+        - Chrome / Chromium
+        - Firefox
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes or screenshots
+      description: Add screenshots, logs, or extra context if useful.
+
