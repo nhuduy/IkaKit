@@ -7,6 +7,7 @@ import { getExtensionApi } from '../../helpers/runtime.js';
 import { onLanguageChange, t } from '../../../shared/i18n/index.js';
 
 const MILITARY_SETTINGS_KEY = 'ika_military_alert_settings';
+const ALERTS_TAB_ID = 'military';
 const DEFAULT_MILITARY_SETTINGS = Object.freeze({
   enabled: true,
   panel: true,
@@ -73,6 +74,11 @@ let panelContainer = null;
 let alertSettings = DEFAULT_MILITARY_SETTINGS;
 let unsubscribeLanguage = null;
 const seenEvents = new Map();
+
+function isActivePanelContainer(container) {
+  return container?.id !== 'ika-alerts-content'
+    || container.dataset.activeAlertsTab === ALERTS_TAB_ID;
+}
 
 function normalizeSettings(value) {
   const source = value && typeof value === 'object' ? value : {};
@@ -644,6 +650,10 @@ function renderSettingsControls(container) {
 
 function renderPanel(container) {
   if (!container) return;
+  if (!isActivePanelContainer(container)) {
+    if (panelContainer === container) panelContainer = null;
+    return;
+  }
   panelContainer = container;
 
   const events = getActiveEvents();

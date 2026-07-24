@@ -9,12 +9,18 @@ const FILTERS = Object.freeze([
   { id: 'townNews', labelKey: 'events.filter.townNews' },
   { id: 'game', labelKey: 'events.filter.game' },
 ]);
+const ALERTS_TAB_ID = 'events';
 
 let activeFilter = 'all';
 let panelContainer = null;
 let unsubscribe = null;
 let renderTimer = null;
 let copyStatus = '';
+
+function isActivePanelContainer(container) {
+  return container?.id !== 'ika-alerts-content'
+    || container.dataset.activeAlertsTab === ALERTS_TAB_ID;
+}
 
 function bucketForEvent(event) {
   if (event?.source === 'notificationAlerts' || String(event?.type || '').startsWith('townNews.')) {
@@ -57,7 +63,7 @@ function createButton(label, className, onClick) {
 function scheduleRender() {
   clearTimeout(renderTimer);
   renderTimer = setTimeout(() => {
-    if (!panelContainer?.isConnected) {
+    if (!panelContainer?.isConnected || !isActivePanelContainer(panelContainer)) {
       panelContainer = null;
       return;
     }
@@ -185,6 +191,10 @@ function renderEventGroups(events) {
 
 function renderPanel(container) {
   if (!container) return;
+  if (!isActivePanelContainer(container)) {
+    if (panelContainer === container) panelContainer = null;
+    return;
+  }
   panelContainer = container;
 
   if (!unsubscribe) {

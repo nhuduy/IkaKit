@@ -223,6 +223,7 @@ function renderActiveTab() {
 
   const tab = TABS.find((item) => item.id === activeTab) || TABS[0];
   const content = modal.querySelector('#ika-alerts-content');
+  content.dataset.activeAlertsTab = tab.id;
   content.replaceChildren();
 
   try {

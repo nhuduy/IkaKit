@@ -7,7 +7,9 @@ import storage from '../../helpers/storage.js';
 import { onLanguageChange, t } from '../../../shared/i18n/index.js';
 
 const STORAGE_KEY = 'ika_notification_alert_settings';
+const ALERTS_TAB_ID = 'townNews';
 const SCAN_DELAY = 500;
+const ADVISOR_POLL_INTERVAL = 60 * 1000;
 const MAX_RECENT = 10;
 const EVENT_TTL = 24 * 60 * 60 * 1000;
 const DEFAULT_SETTINGS = Object.freeze({
@@ -19,16 +21,34 @@ let settings = { ...DEFAULT_SETTINGS };
 let loaded = false;
 let observer = null;
 let scanTimer = null;
+let pollTimer = null;
 let panelRenderTimer = null;
 let panelContainer = null;
 let lastScanAt = null;
+let lastScanSource = null;
 let lastTestResult = null;
 let detectedCount = 0;
 let lastScanRows = 0;
 let lastScanAlerts = 0;
+let lastDomRows = 0;
+let lastAdvisorRows = 0;
+let advisorScan = {
+  requestedAt: null,
+  received: false,
+  ok: null,
+  responseLength: 0,
+  fragmentCount: 0,
+  error: null,
+};
 let recentAlerts = [];
 let unsubscribeLanguage = null;
+let townNewsMessageListener = null;
 const seenKeys = new Set();
+
+function isActivePanelContainer(container) {
+  return container?.id !== 'ika-alerts-content'
+    || container.dataset.activeAlertsTab === ALERTS_TAB_ID;
+}
 
 function normalizeSettings(source) {
   const value = source && typeof source === 'object' ? source : {};
@@ -80,26 +100,20 @@ function eventKey(event) {
 function getNodeEvidence(node) {
   if (!node) return '';
 
-  const parts = [
-    node.className,
-    node.id,
-    node.getAttribute?.('title'),
-    node.getAttribute?.('alt'),
-    node.getAttribute?.('data-category'),
-    node.getAttribute?.('data-type'),
-  ];
+  const parts = [];
+  const collect = (element) => {
+    if (!element) return;
+    parts.push(element.className, element.id);
+    ['title', 'alt', 'src', 'href', 'data-category', 'data-type', 'data-event', 'data-report-type'].forEach((name) => {
+      parts.push(element.getAttribute?.(name));
+    });
+    [...(element.attributes || [])].forEach((attribute) => {
+      if (attribute.name.startsWith('data-')) parts.push(attribute.value);
+    });
+  };
 
-  node.querySelectorAll?.('img, span, i, div').forEach((child) => {
-    parts.push(
-      child.className,
-      child.id,
-      child.getAttribute?.('title'),
-      child.getAttribute?.('alt'),
-      child.getAttribute?.('src'),
-      child.getAttribute?.('data-category'),
-      child.getAttribute?.('data-type'),
-    );
-  });
+  collect(node);
+  node.querySelectorAll?.('[class], [id], img, a, [title], [alt], [data-category], [data-type], [data-event], [data-report-type]').forEach(collect);
 
   return cleanText(parts.filter(Boolean).join(' ')).toLowerCase();
 }
@@ -110,13 +124,13 @@ function inferCategory(row, cells, subject) {
   const subjectEvidence = cleanText(subject).toLowerCase();
   const evidence = `${iconEvidence} ${rowEvidence}`;
 
-  if (/espionage|spy|spies|spionage|binocular/i.test(evidence)
-    || /\b(spy|spies|espionage|spied)\b/i.test(subjectEvidence)) {
+  if (/espionage|spy|spies|spionage|binocular|do[-_ ]?tham|gian[-_ ]?diep/i.test(evidence)
+    || /\b(spy|spies|espionage|spied)\b|gián điệp|do thám|trinh sát/i.test(subjectEvidence)) {
     return 'espionage';
   }
 
-  if (/military|attack|blockade|occupation|plunder|battle|combat|troop/i.test(evidence)
-    || /\b(attack|blockade|occupation|plunder|battle|combat|troops|military)\b/i.test(subjectEvidence)) {
+  if (/military|attack|blockade|occupation|plunder|battle|combat|troop|tan[-_ ]?cong|phong[-_ ]?toa|chiem[-_ ]?dong/i.test(evidence)
+    || /\b(attack|blockade|occupation|plunder|battle|combat|troops|military)\b|tấn công|phong tỏa|chiếm đóng|trận chiến|chiến đấu/i.test(subjectEvidence)) {
     return 'military';
   }
 
@@ -129,33 +143,20 @@ function inferCategory(row, cells, subject) {
   return 'townNews';
 }
 
-function findHeaderIndex(cells, pattern) {
-  return cells.findIndex((cell) => pattern.test(cleanText(cell.textContent)));
-}
-
 function parseRow(row) {
   const cells = [...row.querySelectorAll(':scope > th, :scope > td')];
   if (cells.length < 3) return null;
 
   const cellTexts = cells.map((cell) => cleanText(cell.textContent));
-  if (cellTexts.some((text) => /^(location|date|subject)$/i.test(text))) return null;
+  const datePattern = /(?:\d{1,4}[./-]\d{1,2}[./-]\d{1,4})[^\d]{0,12}\d{1,2}:\d{2}/;
+  const dateIndex = cellTexts.findIndex((text) => datePattern.test(text));
+  if (dateIndex < 1 || dateIndex >= cells.length - 1) return null;
 
-  let locationIndex = findHeaderIndex(cells, /\b(location|town|city)\b/i);
-  let dateIndex = findHeaderIndex(cells, /\bdate\b/i);
-  let subjectIndex = findHeaderIndex(cells, /\bsubject\b/i);
-
-  if (locationIndex < 0 || dateIndex < 0 || subjectIndex < 0) {
-    const offset = cells.length >= 4 ? 1 : 0;
-    locationIndex = offset;
-    dateIndex = offset + 1;
-    subjectIndex = offset + 2;
-  }
-
-  const location = cellTexts[locationIndex];
+  const location = cellTexts.slice(0, dateIndex).filter(Boolean).at(-1);
   const gameDateText = cellTexts[dateIndex];
-  const subject = cellTexts.slice(subjectIndex).join(' ');
+  const subject = cellTexts.slice(dateIndex + 1).filter(Boolean).join(' ');
 
-  if (!location || !subject || !/\d{1,2}\.\d{1,2}\.\d{4}\s+\d{1,2}:\d{2}/.test(gameDateText)) {
+  if (!location || !subject) {
     return null;
   }
 
@@ -168,40 +169,36 @@ function parseRow(row) {
   };
 }
 
-function looksLikeTownNewsContainer(container) {
-  const text = cleanText(container.textContent).toLowerCase();
-  return text.includes('town news')
-    || text.includes('current events')
-    || (text.includes('location') && text.includes('date') && text.includes('subject'));
-}
-
-function findTownNewsContainers(root = document) {
-  const containers = new Set();
-
-  root.querySelectorAll?.('table').forEach((table) => {
-    if (looksLikeTownNewsContainer(table)) containers.add(table);
-  });
-
-  root.querySelectorAll?.('div, section, article').forEach((node) => {
-    if (!looksLikeTownNewsContainer(node)) return;
-    const table = node.querySelector('table');
-    containers.add(table || node);
-  });
-
-  return [...containers];
-}
-
 function parseDocument(root = document) {
   const byKey = new Map();
 
-  findTownNewsContainers(root).forEach((container) => {
-    container.querySelectorAll?.('tr').forEach((row) => {
-      const event = parseRow(row);
-      if (!event) return;
-      byKey.set(eventKey(event), event);
-    });
+  // Advisor responses vary by locale, but report rows consistently have cells and a date.
+  root.querySelectorAll?.('tr').forEach((row) => {
+    const event = parseRow(row);
+    if (!event) return;
+    byKey.set(eventKey(event), event);
   });
 
+  return [...byKey.values()];
+}
+
+function parseHtml(html) {
+  if (!html || typeof DOMParser === 'undefined') return [];
+
+  try {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return parseDocument(doc);
+  } catch (error) {
+    console.warn('[IkaKit] Could not parse Town News HTML:', error);
+    return [];
+  }
+}
+
+function parseAdvisorResult(result) {
+  const byKey = new Map();
+  [result.html, ...(Array.isArray(result.htmlFragments) ? result.htmlFragments : [])].forEach((html) => {
+    parseHtml(html).forEach((event) => byKey.set(eventKey(event), event));
+  });
   return [...byKey.values()];
 }
 
@@ -247,10 +244,19 @@ function rememberRecent(event) {
     .slice(0, MAX_RECENT);
 }
 
-function handleDetectedEvents(events) {
+function handleDetectedEvents(events, source = 'dom') {
+  if (source === 'dom' && events.length === 0 && lastScanSource === 'advisor' && lastScanRows > 0) {
+    lastScanAt = Date.now();
+    schedulePanelRender();
+    return;
+  }
+
   lastScanAt = Date.now();
+  lastScanSource = source;
   lastScanRows = events.length;
   lastScanAlerts = 0;
+  if (source === 'dom') lastDomRows = events.length;
+  if (source === 'advisor') lastAdvisorRows = events.length;
 
   if (!settings.enabled) {
     schedulePanelRender();
@@ -277,14 +283,39 @@ function scheduleScan() {
   if (scanTimer) return;
   scanTimer = setTimeout(() => {
     scanTimer = null;
-    handleDetectedEvents(parseDocument(document));
+    handleDetectedEvents(parseDocument(document), 'dom');
   }, SCAN_DELAY);
 }
 
 function scanNow() {
   clearTimeout(scanTimer);
   scanTimer = null;
-  handleDetectedEvents(parseDocument(document));
+  handleDetectedEvents(parseDocument(document), 'dom');
+  requestTownNewsScan();
+}
+
+function requestTownNewsScan() {
+  lastAdvisorRows = 0;
+  advisorScan = {
+    requestedAt: Date.now(),
+    received: false,
+    ok: null,
+    responseLength: 0,
+    fragmentCount: 0,
+    error: null,
+  };
+  schedulePanelRender();
+  window.postMessage({
+    __ikakit: 'requestTownNewsScan',
+  }, '*');
+}
+
+function scheduleAdvisorPoll() {
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(() => {
+    requestTownNewsScan();
+    scheduleAdvisorPoll();
+  }, ADVISOR_POLL_INTERVAL);
 }
 
 function mutationElement(target) {
@@ -408,6 +439,10 @@ function renderRecentAlerts() {
 
 function renderPanel(container) {
   if (!container) return;
+  if (!isActivePanelContainer(container)) {
+    if (panelContainer === container) panelContainer = null;
+    return;
+  }
   panelContainer = container;
 
   const status = document.createElement('div');
@@ -429,7 +464,25 @@ function renderPanel(container) {
     alerts: lastScanAlerts,
     alertLabel: t(lastScanAlerts === 1 ? 'notificationAlerts.status.alertSingular' : 'notificationAlerts.status.alertPlural'),
   });
-  status.append(title, message, scanMeta);
+  const sourceMeta = document.createElement('small');
+  sourceMeta.textContent = t('notificationAlerts.scanSources', {
+    domRows: lastDomRows,
+    advisorRows: lastAdvisorRows,
+    advisor: advisorScan.received
+      ? (advisorScan.ok ? t('notificationAlerts.advisor.received') : t('notificationAlerts.advisor.failed'))
+      : t('notificationAlerts.advisor.pending'),
+  });
+  status.append(title, message, scanMeta, sourceMeta);
+  if (advisorScan.received && (!advisorScan.ok || lastAdvisorRows === 0)) {
+    const warning = document.createElement('small');
+    warning.textContent = advisorScan.error
+      ? t('notificationAlerts.advisor.error', { error: advisorScan.error })
+      : t('notificationAlerts.advisor.noRows', {
+        responseLength: advisorScan.responseLength,
+        fragmentCount: advisorScan.fragmentCount,
+      });
+    status.appendChild(warning);
+  }
   if (lastTestResult) {
     const testMeta = document.createElement('small');
     testMeta.textContent = lastTestResult;
@@ -457,7 +510,7 @@ function renderPanel(container) {
 function schedulePanelRender() {
   clearTimeout(panelRenderTimer);
   panelRenderTimer = setTimeout(() => {
-    if (!panelContainer?.isConnected) {
+    if (!panelContainer?.isConnected || !isActivePanelContainer(panelContainer)) {
       panelContainer = null;
       return;
     }
@@ -493,13 +546,36 @@ const notificationAlerts = Object.freeze({
         if (panelContainer?.isConnected) renderPanel(panelContainer);
       });
     }
+
+    townNewsMessageListener = (event) => {
+      if (event.source !== window) return;
+      if (!event.data || event.data.__ikakit !== 'townNewsScanResult') return;
+
+      advisorScan = {
+        requestedAt: advisorScan.requestedAt,
+        received: true,
+        ok: Boolean(event.data.ok),
+        responseLength: Number(event.data.responseLength) || 0,
+        fragmentCount: Number(event.data.fragmentCount) || 0,
+        error: event.data.error ? String(event.data.error) : null,
+      };
+      const events = advisorScan.ok ? parseAdvisorResult(event.data) : [];
+      handleDetectedEvents(events, 'advisor');
+    };
+    window.addEventListener('message', townNewsMessageListener);
+
+    requestTownNewsScan();
+    scheduleAdvisorPoll();
   },
 
   destroy() {
     observer?.disconnect();
     observer = null;
     clearTimeout(scanTimer);
+    clearTimeout(pollTimer);
     clearTimeout(panelRenderTimer);
+    if (townNewsMessageListener) window.removeEventListener('message', townNewsMessageListener);
+    townNewsMessageListener = null;
     unsubscribeLanguage?.();
     unsubscribeLanguage = null;
     panelContainer = null;
@@ -518,6 +594,12 @@ const notificationAlerts = Object.freeze({
         : t('notificationAlerts.status.disabled'),
     };
   },
+});
+
+export const __test = Object.freeze({
+  eventKey,
+  parseAdvisorResult,
+  parseRow,
 });
 
 export default notificationAlerts;

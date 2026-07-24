@@ -900,6 +900,28 @@
     }, '*');
   }
 
+  function townNewsHtmlFragments(response) {
+    var fragments = [];
+    extractAjaxItems(response).forEach(function(item) {
+      readAjaxHtmlStrings(item).forEach(function(fragment) {
+        if (fragments.indexOf(fragment) === -1) fragments.push(fragment);
+      });
+    });
+    return fragments;
+  }
+
+  function sendTownNewsScanResult(result) {
+    window.postMessage(mergeObject({
+      __ikakit: 'townNewsScanResult',
+      ok: false,
+      html: '',
+      htmlFragments: [],
+      responseLength: 0,
+      fragmentCount: 0,
+      error: null
+    }, result), '*');
+  }
+
   function findDeepObject(root, predicate, depth) {
     if (!root || typeof root !== 'object' || depth > 5) return null;
     if (predicate(root)) return root;
@@ -1352,6 +1374,52 @@
     processAjaxResponse(response, selectedCityId);
   }
 
+  async function fetchTownNewsAdvisor() {
+    var selectedCityId = null;
+    var urlParams = null;
+    try {
+      urlParams = new URLSearchParams(window.location.search);
+      if (typeof ikariam !== 'undefined' && ikariam.model) {
+        selectedCityId = readCities(ikariam.model).selectedCityId;
+      }
+    } catch (_err) {}
+    if (!selectedCityId) {
+      try {
+        selectedCityId = urlParams && (urlParams.get('cityId') || urlParams.get('currentCityId'));
+      } catch (_err2) {}
+    }
+    if (!selectedCityId) {
+      var cityInput = document.querySelector('#js_cityIdOnChange, input[name="cityId"]');
+      selectedCityId = cityInput && cityInput.value;
+    }
+
+    var response = await ikariamFetch({
+      view: 'tradeAdvisor',
+      oldView: 'city',
+      oldBackgroundView: urlParams && urlParams.get('oldBackgroundView'),
+      containerWidth: urlParams && urlParams.get('containerWidth'),
+      containerHeight: urlParams && urlParams.get('containerHeight'),
+      worldviewWidth: urlParams && urlParams.get('worldviewWidth'),
+      worldviewHeight: urlParams && urlParams.get('worldviewHeight'),
+      cityTop: urlParams && urlParams.get('cityTop'),
+      cityLeft: urlParams && urlParams.get('cityLeft'),
+      cityRight: urlParams && urlParams.get('cityRight'),
+      cityWorldviewScale: urlParams && urlParams.get('cityWorldviewScale'),
+      cityId: selectedCityId,
+      backgroundView: 'city',
+      currentCityId: selectedCityId
+    });
+    var fragments = townNewsHtmlFragments(response);
+    sendTownNewsScanResult({
+      ok: true,
+      html: response,
+      htmlFragments: fragments,
+      responseLength: response.length,
+      fragmentCount: fragments.length
+    });
+    processAjaxResponse(response, selectedCityId);
+  }
+
   async function fetchResearchAdvisor(force) {
     if (!force && researchCache && researchCache.updatedAt && Date.now() - researchCache.updatedAt < RESEARCH_CACHE_TTL) return;
 
@@ -1489,6 +1557,17 @@
     if (!event.data || event.data.__ikakit !== 'requestMilitaryAdvisorScan') return;
 
     fetchMilitaryAdvisor().catch(function() {});
+  });
+
+  window.addEventListener('message', function(event) {
+    if (event.source !== window) return;
+    if (!event.data || event.data.__ikakit !== 'requestTownNewsScan') return;
+
+    fetchTownNewsAdvisor().catch(function(error) {
+      sendTownNewsScanResult({
+        error: String(error && error.message ? error.message : error)
+      });
+    });
   });
 
   window.addEventListener('message', function(event) {

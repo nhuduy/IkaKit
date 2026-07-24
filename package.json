@@ -6,7 +6,8 @@
   "scripts": {
     "build:chrome": "node scripts/build.js chrome",
     "build:firefox": "node scripts/build.js firefox",
-    "build": "node scripts/build.js chrome && node scripts/build.js firefox"
+    "build": "node scripts/build.js chrome && node scripts/build.js firefox",
+    "test:town-news": "node --test tests/notificationAlerts.parser.test.mjs"
   },
   "dependencies": {
     "webextension-polyfill": "^0.12.0"
