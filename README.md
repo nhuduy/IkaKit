@@ -147,6 +147,8 @@ looks active and contributors know where to begin:
 
 ## Install From Source
 
+Build requirements: Node.js 18 or later and npm (bundled with Node.js).
+
 Clone the repository, install dependencies, then build the extension:
 
 ```bash

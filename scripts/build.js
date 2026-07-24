@@ -22,7 +22,9 @@ mkdirSync(distDir, { recursive: true });
 // 2. Copy toàn bộ src/ → dist/browser/ (bỏ qua thư mục manifests/)
 cpSync(srcDir, distDir, {
   recursive: true,
-  filter: (src) => !src.includes(`${srcDir}/manifests`),
+  filter: (src) =>
+    !src.includes(`${srcDir}/manifests`) &&
+    !src.endsWith('.DS_Store'),
 });
 
 // 3. Đặt đúng manifest cho từng browser

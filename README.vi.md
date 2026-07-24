@@ -150,6 +150,8 @@ Nếu GitHub issue list còn trống, nên tạo trước vài task dễ tiếp 
 
 ## Cài Đặt Từ Source
 
+Yêu cầu build: Node.js 18 trở lên và npm (đi kèm Node.js).
+
 Clone repository, cài dependencies, rồi build extension:
 
 ```bash
