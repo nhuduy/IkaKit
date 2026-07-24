@@ -1,6 +1,6 @@
 {
   "name": "ikakit",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A community-built Chrome extension for Ikariam. Adds useful tools and quality-of-life improvements to your gameplay. Free and open source. Inspired by IkaEasy (MIT) by vltansky",
   "type": "module",
   "engines": {
